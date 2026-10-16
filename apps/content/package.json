@@ -1,0 +1,27 @@
+{
+  "name": "@paymedia/catalog",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch --env-file=../../.env src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/multipart": "^10.0.0",
+    "@paymedia/auth": "workspace:*",
+    "@paymedia/cache": "workspace:*",
+    "@paymedia/database": "workspace:*",
+    "@paymedia/logger": "workspace:*",
+    "@paymedia/schemas": "workspace:*",
+    "@paymedia/utils": "workspace:*",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "tsx": "^4.23.1",
+    "typescript": "^6.0.3"
+  }
+}

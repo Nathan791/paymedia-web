@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+
+  postgres:
+
+    image: postgres:17
+
+    container_name: paymedia-postgres
+
+    restart: always
+
+    environment:
+      POSTGRES_USER: paymedia
+      POSTGRES_PASSWORD: paymedia
+      POSTGRES_DB: paymedia
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+
+    image: redis:7
+
+    container_name: paymedia-redis
+
+    restart: always
+
+    ports:
+      - "6379:6379"
+
+volumes:
+
+  postgres_data:

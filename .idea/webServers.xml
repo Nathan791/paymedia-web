@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="89f2084c-7a87-4f62-89a5-a633911496fd" name="paymedia">
+        <fileTransfer rootFolder="/opt/paymedia" accessType="SFTP" host="192.168.100.101" port="22" sshConfigId="a0bc6cf8-696d-4d6d-995b-cdbbb644e3ec" sshConfig="jeannia@192.168.100.101:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
