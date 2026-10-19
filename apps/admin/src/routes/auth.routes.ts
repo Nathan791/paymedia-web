@@ -46,8 +46,8 @@ export async function authRoutes(fastify: FastifyInstance) {
     });
 
     //  Profil
-    fastify.get('/me', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-        const user = (request as any).userData || {
+    fastify.get('/me', { preHandler: [fastify.verifyJWT] }, async (request, reply) => {
+        const user = (request as any).user || (request as any).userData || {
             id: 1,
             username: 'SuperAdmin',
             email: 'admin@paymedia.com',
@@ -61,8 +61,8 @@ export async function authRoutes(fastify: FastifyInstance) {
         });
     });
 
-    // Logout
-    fastify.post('/logout', { preHandler: [fastify.authenticate] }, async (_request, reply) => {
+    // Logout (Remplacement de authenticate par verifyJWT)
+    fastify.post('/logout', { preHandler: [fastify.verifyJWT] }, async (_request, reply) => {
         return reply.send({
             success: true,
             message: 'Déconnexion réussie',

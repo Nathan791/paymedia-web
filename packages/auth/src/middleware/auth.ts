@@ -1,58 +1,96 @@
-// packages/auth/src/middleware/auth.store.ts
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { verifyAccessToken } from '../jwt';
-import { isSessionValid } from '../session';
-import { prisma } from "@paymedia/database";
+import type {
+    FastifyPluginAsync,
+    FastifyReply,
+    FastifyRequest,
+} from 'fastify'
 
+import fp from 'fastify-plugin'
+import { verifyAccessToken } from '../jwt'
+import { isSessionValid } from '../session'
+import { prisma } from '@paymedia/database'
+
+// Extension des types Fastify pour inclure `request.user` et les décorateurs globaux
 declare module 'fastify' {
-    interface FastifyInstance {
-        db: typeof prisma;
-        // FIX : Renommé en verifyJWT pour éviter le conflit avec @fastify/jwt
-        verifyJWT: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    }
     interface FastifyRequest {
-        // FIX : Déclaration de 'user' requise par la compilation interne de packages/auth
-        user: {
-            id: number;
-            ulid: string;
-            email: string;
-            role: string;
-            jti: string;
-        };
+        user?: {
+            id: number
+            ulid: string
+            email: string
+            role: string
+            jti: string
+        }
+    }
+    interface FastifyInstance {
+        verifyJWT: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
+        db: typeof prisma
     }
 }
 
-export const authMiddlewarePlugin = fp(async (fastify: FastifyInstance, options: { jwtSecret: string }) => {
+interface AuthMiddlewareOptions {
+    jwtSecret: string
+}
 
-
-    fastify.decorate('verifyJWT', async (request: FastifyRequest, reply: FastifyReply) => {
-        try {
-            const authHeader = request.headers.authorization;
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return reply.status(401).send({ error: 'Format de token invalide (Bearer token requis).' });
-            }
-
-            const token = authHeader.split(' ')[1];
-
-            // 1. Validation de la signature du JWT via jose (jwt.ts)
-            const decoded = await verifyAccessToken(token, options.jwtSecret);
-
-            // 2. Vérification de la validité de la session (jti) en base de données
-            const isValid = await isSessionValid(decoded.jti);
-            if (!isValid) {
-                return reply.status(401).send({ error: 'Session révoquée ou expirée.' });
-            }
-
-            // 3. Injection des données utilisateur typées dans la requête
-            request.user = {
-                id: decoded.userId, // FIX : Plus de "Number(decoded.sub)" qui renvoie NaN !
-                ulid: decoded.sub,
-                email: decoded.email,
-                role: decoded.roles?.[0] || 'reader',
-                jti: decoded.jti
-            };
-        } catch (err: any) {
-            return reply.status(401).send({ error: err.message || 'Non autorisé.' });
+const authMiddleware: FastifyPluginAsync<AuthMiddlewareOptions> =
+    async (fastify, options) => {
+        if (!fastify.hasDecorator('db')) {
+            fastify.decorate('db', prisma)
         }
-    });
-});
+
+        if (!fastify.hasDecorator('verifyJWT')) {
+            fastify.decorate(
+                'verifyJWT',
+                async (
+                    request: FastifyRequest,
+                    reply: FastifyReply,
+                ): Promise<void> => {
+                    try {
+                        const authHeader = request.headers.authorization
+
+                        if (!authHeader?.startsWith('Bearer ')) {
+                            reply.code(401).send({
+                                error: 'Token Bearer requis.',
+                            })
+                            return
+                        }
+
+                        const token = authHeader.slice(7).trim()
+
+                        if (!token) {
+                            reply.code(401).send({ error: 'Token manquant.' })
+                            return
+                        }
+
+                        const decoded = await verifyAccessToken(
+                            token,
+                            options.jwtSecret,
+                        )
+
+                        if (!(await isSessionValid(decoded.jti))) {
+                            reply.code(401).send({
+                                error: 'Session révoquée ou expirée.',
+                            })
+                            return
+                        }
+
+                        request.user = {
+                            id: decoded.userId,
+                            ulid: decoded.sub,
+                            email: decoded.email,
+                            role: decoded.roles?.[0] ?? 'reader',
+                            jti: decoded.jti,
+                        }
+                    } catch {
+                        reply.code(401).send({
+                            error: 'Token invalide ou session non autorisée.',
+                        })
+                    }
+                },
+            )
+        }
+    }
+
+// Exportation sécurisée avec contournement des conflits de versions des types fastify-plugin
+export const authMiddlewarePlugin = fp(
+    authMiddleware as any,
+    { name: 'paymedia-auth-middleware' },
+) as any

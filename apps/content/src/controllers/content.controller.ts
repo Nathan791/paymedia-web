@@ -25,7 +25,7 @@ export async function getContent(request: FastifyRequest, reply: FastifyReply): 
 
 export async function createContent(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     // Les champs multipart arrivent via parts()
-    const parts = request.parts()
+    const parts = (request as any).parts()
     const fields: Record<string, string> = {}
     let fileUrl = ''
 
@@ -53,7 +53,8 @@ export async function createContent(request: FastifyRequest, reply: FastifyReply
         price:       parseFloat(fields['price'] ?? '0'),
     })
 
-    const content = await contentService.createContent(request.user!.userId, input, fileUrl)
+    const userId = (request as any).user?.userId ?? (request as any).user?.id
+    const content = await contentService.createContent(userId, input, fileUrl)
     reply.status(201).send({ data: content, timestamp: ts() })
 }
 
@@ -61,7 +62,8 @@ export async function updateContent(request: FastifyRequest, reply: FastifyReply
     const { id } = request.params as { id: string }
     const input  = ContentUpdateSchema.parse(request.body)
     try {
-        const content = await contentService.updateContent(id, request.user!.userId, input)
+        const userId = (request as any).user?.userId ?? (request as any).user?.id
+        const content = await contentService.updateContent(id, userId, input)
         reply.send({ data: content, timestamp: ts() })
     } catch (err: any) {
         if (err.message === 'NOT_FOUND') { reply.status(404).send({ code: 'NOT_FOUND', message: 'Content not found', timestamp: ts() }); return }
@@ -73,7 +75,8 @@ export async function updateContent(request: FastifyRequest, reply: FastifyReply
 export async function deleteContent(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const { id } = request.params as { id: string }
     try {
-        await contentService.deleteContent(id, request.user!.userId)
+        const userId = (request as any).user?.userId ?? (request as any).user?.id
+        await contentService.deleteContent(id, userId)
         reply.status(204).send()
     } catch (err: any) {
         if (err.message === 'NOT_FOUND') { reply.status(404).send({ code: 'NOT_FOUND', message: 'Content not found', timestamp: ts() }); return }

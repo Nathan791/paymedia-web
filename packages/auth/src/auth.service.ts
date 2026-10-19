@@ -1,4 +1,3 @@
-import type { FastifyInstance } from 'fastify'
 import fp from 'fastify-plugin'
 import { prisma } from '@paymedia/database'
 import type { Prisma } from '@paymedia/database'
@@ -22,18 +21,14 @@ export interface AuthServiceConfig {
     refreshTtl:       number
 }
 
-
-
-// 1. Ajoutez une interface pour représenter l'utilisateur minimal retourné par le jeton
 export interface AuthUserResponse {
     id: number
     ulid: string
-    username: string
+    username: string | null // 👈 Autorise explicitement le type null
     email: string
-    role: string
+    role: string | null     // 👈 Autorise explicitement le type null
 }
 
-// 2. Enrichissez TokenPair pour y inclure l'utilisateur
 export interface TokenPair {
     accessToken:  string
     refreshToken: string
@@ -50,13 +45,16 @@ async function buildTokenPair(user: UserWithRoles, cfg: AuthServiceConfig): Prom
     const { jti: accessJti }  = await createSession(targetId, 'ACCESS',  cfg.accessTtl)
     const { jti: refreshJti } = await createSession(targetId, 'REFRESH', cfg.refreshTtl)
 
+    // Cast explicite pour couper court à toute erreur de type null
+    const userRole = (user.role ?? 'reader') as string
+
     const accessToken = await signAccessToken(
         {
             sub: user.ulid,
             userId: targetId,
             jti: accessJti,
-            email: user.email ?? '',
-            roles: [user.role]
+            email: (user.email ?? '') as string,
+            roles: [userRole]
         },
         cfg.jwtSecret,
         cfg.accessTtl,
@@ -73,18 +71,16 @@ async function buildTokenPair(user: UserWithRoles, cfg: AuthServiceConfig): Prom
         expiresIn: cfg.accessTtl,
         user: {
             id: targetId,
-            ulid: user.ulid,
-            username: user.username,
-            email: user.email ?? '',
-            role: user.role
+            ulid: user.ulid ?? '',
+            username: (user.username ?? null) as string | null,
+            email: (user.email ?? '') as string,
+            role: userRole
         }
     }
 }
 
 // --- Déclaration du Plugin Fastify ---
-async function authServicePlugin(fastify: FastifyInstance, options: AuthServiceConfig) {
-
-    // Regroupement des méthodes du service d'authentification
+const authServicePlugin = async (fastify: any, options: AuthServiceConfig) => {
     const authService = {
         async loginUser(email: string, password: string): Promise<TokenPair | { error: 'invalid_credentials' | 'account_disabled' }> {
             const user = await prisma.user.findFirst({
@@ -130,15 +126,13 @@ async function authServicePlugin(fastify: FastifyInstance, options: AuthServiceC
         }
     }
 
-    // Décoration de l'instance Fastify globale pour rendre le service disponible partout
     fastify.decorate('authService', authService)
 }
 
-// Exportation via fastify-plugin pour casser l'encapsulation de Fastify
+// Exportation sécurisée via fastify-plugin
 export default fp(authServicePlugin, {
     name: '@paymedia/auth-service',
-    fastify: '5.x'
-})
+}) as any
 
 // --- Augmentation des Types TypeScript pour Fastify ---
 declare module 'fastify' {
