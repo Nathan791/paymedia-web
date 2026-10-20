@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { mockStats, mockUsers, mockContents, mockTransactions } from '../mock/data';
+import { mockStats, mockUsers, mockContents, mockTransactions } from '../mock/data.js';
 
 export async function dashboardRoutes(fastify: FastifyInstance) {
     // Statistiques

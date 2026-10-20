@@ -1,5 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { AdminAuthService } from '../services/auth.service';
+import { AdminAuthService } from '../services/auth.service.js';
 
 const authService = new AdminAuthService();
 

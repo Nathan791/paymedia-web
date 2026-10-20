@@ -1,6 +1,8 @@
 import { prisma } from '@paymedia/database';
 import { createLogger } from '@paymedia/logger';
-import { AdminUser } from '../types';
+import type { AdminUser } from '../types/index.js';
+// Utilisation propre et standardisée du package partagé du monorepo
+import { comparePassword, signAccessToken, verifyAccessToken } from '@paymedia/auth';
 
 const logger = createLogger('admin-auth');
 
@@ -16,7 +18,7 @@ export class AdminAuthService {
                 return null;
             }
 
-            return user as AdminUser;
+            return user as unknown as AdminUser;
         } catch (error) {
             const err = error as Error;
             logger.error('Erreur récupération admin: %s', err.message);
@@ -29,8 +31,6 @@ export class AdminAuthService {
         user: AdminUser;
     }> {
         try {
-            const authModule = await import('@paymedia/auth');
-
             const user = await prisma.user.findUnique({
                 where: { email },
                 include: { wallet: true }
@@ -40,7 +40,7 @@ export class AdminAuthService {
                 throw new Error('Email ou mot de passe incorrect');
             }
 
-            const passwordValid = await authModule.comparePassword(
+            const passwordValid = await comparePassword(
                 password,
                 user.passwordHash || ''
             );
@@ -57,10 +57,18 @@ export class AdminAuthService {
                 throw new Error('Compte désactivé');
             }
 
-            const token = authModule.generateToken(
-                { id: user.id, email: user.email, role: user.role },
+            // Calcul explicite du TTL (7 jours en secondes)
+            const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+
+            const token = await signAccessToken(
+                {
+                    sub: user.ulid,
+                    userId: Number(user.id),
+                    email: user.email || '',
+                    roles: [user.role]
+                },
                 process.env.JWT_SECRET || 'secret',
-                process.env.JWT_EXPIRES_IN || '7d'
+                sevenDaysInSeconds
             );
 
             await prisma.user.update({
@@ -68,9 +76,9 @@ export class AdminAuthService {
                 data: { lastLoginAt: new Date() }
             });
 
-            logger.info(' Admin connecté: %s', user.email);
+            logger.info('Admin connecté: %s', user.email);
 
-            return { token, user: user as AdminUser };
+            return { token, user: user as unknown as AdminUser };
         } catch (error) {
             const err = error as Error;
             logger.error('Erreur login admin: %s', err.message);
@@ -80,15 +88,14 @@ export class AdminAuthService {
 
     async verifyToken(token: string): Promise<{ id: number; email: string; role: string } | null> {
         try {
-            const authModule = await import('@paymedia/auth');
-            const decoded = await authModule.verifyToken(token,process.env.JWT_SECRET!);
+            const decoded = await verifyAccessToken(token, process.env.JWT_SECRET!);
 
-            if (!decoded || typeof decoded === 'string') {
+            if (!decoded || !decoded.userId) {
                 return null;
             }
 
             const user = await prisma.user.findUnique({
-                where: { id: decoded.id }
+                where: { id: decoded.userId }
             });
 
             if (!user || user.role !== 'admin' || !user.isActive) {
@@ -96,7 +103,7 @@ export class AdminAuthService {
             }
 
             return {
-                id: user.id,
+                id: Number(user.id),
                 email: user.email || '',
                 role: user.role
             };

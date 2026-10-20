@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { mockContents } from '../mock/data';
+import { mockContents } from '../mock/data.js';
 
 export async function contentRoutes(fastify: FastifyInstance) {
     // Liste des contenus

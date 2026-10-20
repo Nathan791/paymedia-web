@@ -1,9 +1,4 @@
 {
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "lint": "tsc --noEmit"
-  },
   "name": "@paymedia/auth",
   "version": "0.0.1",
   "private": true,

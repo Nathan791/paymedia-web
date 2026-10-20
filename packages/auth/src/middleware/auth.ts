@@ -36,9 +36,9 @@ const authMiddleware: FastifyPluginAsync<AuthMiddlewareOptions> =
             fastify.decorate('db', prisma)
         }
 
-        if (!fastify.hasDecorator('verifyJWT')) {
+        if (!fastify.hasDecorator('authenticate')) {
             fastify.decorate(
-                'verifyJWT',
+                'authenticate',
                 async (
                     request: FastifyRequest,
                     reply: FastifyReply,

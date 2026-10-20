@@ -25,7 +25,7 @@ export async function authRoutes(fastify: FastifyInstance) {
         }
 
         // Autres utilisateurs (pour test)
-        const { mockUsers } = await import('../mock/data');
+        const { mockUsers } = await import('../mock/data.js');
         const user = mockUsers.find((u: any) => u.email === email);
 
         if (user && password === 'password123') {
@@ -46,7 +46,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     });
 
     //  Profil
-    fastify.get('/me', { preHandler: [fastify.verifyJWT] }, async (request, reply) => {
+    fastify.get('/me', { preHandler: [fastify.authenticate] }, async (request, reply) => {
         const user = (request as any).user || (request as any).userData || {
             id: 1,
             username: 'SuperAdmin',
@@ -62,7 +62,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     });
 
     // Logout (Remplacement de authenticate par verifyJWT)
-    fastify.post('/logout', { preHandler: [fastify.verifyJWT] }, async (_request, reply) => {
+    fastify.post('/logout', { preHandler: [fastify.authenticate] }, async (_request, reply) => {
         return reply.send({
             success: true,
             message: 'Déconnexion réussie',

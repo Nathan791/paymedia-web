@@ -1,6 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { AdminAuthService } from '../services/auth.service';
-import { AuthRequest } from '../middlewares/auth.middleware';
+import { AdminAuthService } from '../services/auth.service.js';
+import { AuthRequest } from '../middlewares/auth.middleware.js';
 
 const authService = new AdminAuthService();
 

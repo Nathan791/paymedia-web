@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { mockUsers } from '../mock/data';
+import { mockUsers } from '../mock/data.js';
 
 export async function userRoutes(fastify: FastifyInstance) {
     // Liste des utilisateurs

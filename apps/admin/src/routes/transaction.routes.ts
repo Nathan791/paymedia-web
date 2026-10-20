@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { mockTransactions } from '../mock/data';
+import { mockTransactions } from '../mock/data.js';
 
 export async function transactionRoutes(fastify: FastifyInstance) {
     //  Liste des transactions

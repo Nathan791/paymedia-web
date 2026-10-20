@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { mockCommissions } from '../mock/data';
+import { mockCommissions } from '../mock/data.js';
 
 export async function commissionRoutes(fastify: FastifyInstance) {
     //  Liste des commissions
