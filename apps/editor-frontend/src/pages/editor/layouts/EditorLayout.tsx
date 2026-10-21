@@ -1,3 +1,4 @@
+// src/layouts/EditorLayout.tsx
 import { Outlet } from 'react-router-dom';
 import { AppShell, Box } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -19,7 +20,11 @@ export const EditorLayout = () => {
             transitionDuration={300}
         >
             <AppShell.Header>
-                <EditorHeader opened={opened} toggle={toggle} />
+                <EditorHeader
+                    opened={opened}
+                    onToggle={toggle}
+                    {...({ toggle } as any)}
+                />
             </AppShell.Header>
 
             <AppShell.Navbar>

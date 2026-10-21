@@ -1,6 +1,5 @@
 // src/services/trigger.service.ts
-import { triggerRepository } from '@/repositories/trigger.repository';
-import { TriggerStatus } from '@/models';
+import { triggerRepository, TriggerStatus } from '@/repositories/trigger.repository';
 
 export const triggerService = {
     list: () => triggerRepository.list(),

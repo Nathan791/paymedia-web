@@ -46,84 +46,54 @@ async function validateUser(
 export async function registerProxies(fastify: FastifyInstance) {
     /*
      * AUTH SERVICE
-     *
-     * Gateway:
-     * /api/auth/*
-     *
-     * Auth Service:
-     * http://localhost:4000/api/auth/*
+     * Gateway: /api/auth/*
+     * Auth Service: http://localhost:4000/api/auth/*
      */
 
     await fastify.register(replyFrom, {
         base: 'http://localhost:4000',
         prefix: '/api/auth',
-        rewriteRequestHeaders: (request, headers) => {
-            return {
-                ...headers,
-                host: 'localhost:4000',
-            };
-        },
     });
 
     /*
      * CATALOG SERVICE
-     *
-     * À adapter au port réel du Catalog Service.
      */
 
-    await fastify.register(replyFrom, {
-        base: 'http://localhost:4001',
-        prefix: '/api/catalog',
-        rewriteRequestHeaders: async (request, headers) => {
+    await fastify.register(async (instance) => {
+        instance.addHook('onRequest', async (request) => {
             const user = await validateUser(fastify, request);
+            if (user) {
+                request.headers['x-user-id'] = String(user.id ?? user.sub ?? '');
+                request.headers['x-user-email'] = user.email ?? '';
+                request.headers['x-user-role'] = user.role ?? user.roles?.[0] ?? '';
+            }
+            request.headers['host'] = 'localhost:4001';
+        });
 
-            return {
-                ...headers,
-                host: 'localhost:4001',
-                ...(user
-                    ? {
-                        'x-user-id': String(
-                            user.id ?? user.sub ?? ''
-                        ),
-                        'x-user-email': user.email ?? '',
-                        'x-user-role':
-                            user.role ??
-                            user.roles?.[0] ??
-                            '',
-                    }
-                    : {}),
-            };
-        },
-    });
+        await instance.register(replyFrom, {
+            base: 'http://localhost:4001',
+        });
+    }, { prefix: '/api/catalog' });
 
     /*
      * CORE SERVICE
      */
 
-    await fastify.register(replyFrom, {
-        base: 'http://localhost:4002',
-        prefix: '/api/core',
-        rewriteRequestHeaders: async (request, headers) => {
+    await fastify.register(async (instance) => {
+        instance.addHook('onRequest', async (request) => {
             const user = await validateUser(fastify, request);
+            if (user) {
+                request.headers['x-user-id'] = String(user.id ?? user.sub ?? '');
+                request.headers['x-user-email'] = user.email ?? '';
+                request.headers['x-user-role'] = user.role ?? user.roles?.[0] ?? '';
+            }
+            request.headers['host'] = 'localhost:4002';
+        });
 
-            return {
-                ...headers,
-                host: 'localhost:4002',
-                ...(user
-                    ? {
-                        'x-user-id': String(
-                            user.id ?? user.sub ?? ''
-                        ),
-                        'x-user-email': user.email ?? '',
-                        'x-user-role':
-                            user.role ??
-                            user.roles?.[0] ??
-                            '',
-                    }
-                    : {}),
-            };
-        },
-    });
+        await instance.register(replyFrom, {
+            base: 'http://localhost:4002',
+        });
+    }, { prefix: '/api/core' });
 
     /*
      * HEALTH CHECK
@@ -137,4 +107,5 @@ export async function registerProxies(fastify: FastifyInstance) {
             timestamp: new Date().toISOString(),
         };
     });
+
 }

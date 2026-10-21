@@ -37,7 +37,7 @@ export function EditorAccessPoints() {
 
     useEffect(() => {
         fetchAccessPoints();
-        fetchContents('published'); // seuls les contenus publiés peuvent recevoir un point d'accès
+        fetchContents();
     }, [fetchAccessPoints, fetchContents]);
 
     const publishedContents = contents.filter((c) => c.status === 'published');

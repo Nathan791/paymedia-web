@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import {
     Badge,
     Box,
@@ -467,7 +466,7 @@ export function EditorDashboard() {
 
                             </Group>
 
-                            {[
+                            {([
                                 [
                                     'Publiés',
                                     kpi.publishedContents,
@@ -483,7 +482,7 @@ export function EditorDashboard() {
                                     kpi.draftContents,
                                     'gray',
                                 ],
-                            ].map(
+                            ] as [string, number, string][]).map(
                                 ([label, value, color]) => {
 
                                     const total =

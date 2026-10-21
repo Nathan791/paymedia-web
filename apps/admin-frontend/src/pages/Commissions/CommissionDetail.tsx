@@ -12,7 +12,6 @@ import {
     SimpleGrid,
     ScrollArea,
     Button,
-    Divider,
     ThemeIcon,
 } from '@mantine/core';
 import {
@@ -20,11 +19,8 @@ import {
     IconUser,
     IconCoin,
     IconCalendar,
-    IconTrendingUp,
-    IconTrendingDown,
     IconCheck,
     IconClock,
-    IconX,
     IconChartBar,
 } from '@tabler/icons-react';
 import { commissionApi } from '../../api/commission.api';
@@ -70,7 +66,7 @@ export default function CommissionDetail() {
         );
     }
 
-    //  Couleurs des statuts
+    // Couleurs des statuts
     const statusColors: Record<string, string> = {
         paid: 'green',
         pending: 'yellow',
@@ -87,7 +83,7 @@ export default function CommissionDetail() {
         }
     };
 
-    //  Libellés des statuts
+    // Libellés des statuts
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'paid': return 'Payée';
@@ -97,17 +93,10 @@ export default function CommissionDetail() {
         }
     };
 
-    //  Icône de tendance
-    const getTrendIcon = (value: number) => {
-        if (value > 0) return <IconTrendingUp size={16} color="green" />;
-        if (value < 0) return <IconTrendingDown size={16} color="red" />;
-        return null;
-    };
-
     return (
         <Container fluid>
             <Box pos="relative">
-                {/*  En-tête avec bouton retour */}
+                {/* En-tête avec bouton retour */}
                 <Group justify="space-between" mb="lg">
                     <Group>
                         <Button
@@ -117,14 +106,14 @@ export default function CommissionDetail() {
                         >
                             Retour
                         </Button>
-                        <Title order={2}> Détail - Commission #{commission.id}</Title>
+                        <Title order={2}>Détail - Commission #{commission.id}</Title>
                     </Group>
                     <Badge size="lg" color={statusColors[commission.status]} variant="light">
                         {getStatusIcon(commission.status)} {getStatusLabel(commission.status)}
                     </Badge>
                 </Group>
 
-                {/*  Informations principales */}
+                {/* Informations principales */}
                 <Card withBorder p="xl" radius="md" mb="md">
                     <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
                         <Group>
@@ -142,7 +131,7 @@ export default function CommissionDetail() {
                             </ThemeIcon>
                             <div>
                                 <Text size="xs" c="dimmed">Montant</Text>
-                                <Text fw={700} size="xl" color="green">
+                                <Text fw={700} size="xl" c="green">
                                     {commission.amount.toLocaleString()} FCFA
                                 </Text>
                             </div>
@@ -159,8 +148,8 @@ export default function CommissionDetail() {
                     </SimpleGrid>
                 </Card>
 
-                {/*  Statistiques de l'éditeur */}
-                <Title order={4} mb="md"> Statistiques de l'éditeur</Title>
+                {/* Statistiques de l'éditeur */}
+                <Title order={4} mb="md">Statistiques de l'éditeur</Title>
 
                 <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md" mb="md">
                     <Card withBorder p="md">
@@ -201,10 +190,10 @@ export default function CommissionDetail() {
                     </Card>
                 </SimpleGrid>
 
-                {/*  Historique des commissions */}
+                {/* Historique des commissions */}
                 {commission.history && commission.history.length > 0 && (
                     <Card withBorder p="lg" radius="md">
-                        <Title order={5} mb="md"> Historique des commissions</Title>
+                        <Title order={5} mb="md">Historique des commissions</Title>
                         <ScrollArea>
                             {commission.history.map((item, index) => (
                                 <Group

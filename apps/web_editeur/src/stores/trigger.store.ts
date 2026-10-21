@@ -1,7 +1,7 @@
 // src/stores/trigger.store.ts
 import { create } from 'zustand';
 import { triggerService } from '@/services/trigger.service';
-import { Trigger } from '@/models';
+import { Trigger } from '@/repositories/trigger.repository';
 
 interface TriggerState {
     triggers: Trigger[];

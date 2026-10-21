@@ -1,3 +1,4 @@
+// src/stores/trigger.store.ts
 import { create } from 'zustand';
 import { triggerApi } from '@/api/trigger.api';
 import { Trigger, TriggerStats } from '@/models';
@@ -10,13 +11,13 @@ interface TriggerState {
     error: string | null;
 
     fetchTriggers: () => Promise<void>;
-    fetchTriggersByContent: (contentId: number) => Promise<void>;
-    fetchTriggerStats: (id: number) => Promise<void>;
-    createQR: (contentId: number) => Promise<Trigger>;
-    createShortCode: (contentId: number) => Promise<Trigger>;
-    createAudioWatermark: (contentId: number, audioFile: File) => Promise<Trigger>;
-    deleteTrigger: (id: number) => Promise<void>;
-    downloadQR: (id: number) => Promise<Blob>;
+    fetchTriggersByContent: (contentId: string) => Promise<void>;
+    fetchTriggerStats: (id: string) => Promise<void>;
+    createQR: (contentId: string) => Promise<Trigger>;
+    createShortCode: (contentId: string) => Promise<Trigger>;
+    createAudioWatermark: (contentId: string, audioFile: File) => Promise<Trigger>;
+    deleteTrigger: (id: string) => Promise<void>;
+    downloadQR: (id: string) => Promise<Blob>;
     clearError: () => void;
     reset: () => void;
 }
@@ -46,7 +47,7 @@ export const useTriggerStore = create<TriggerState>((set, _get) => ({
         }
     },
 
-    fetchTriggersByContent: async (contentId: number) => {
+    fetchTriggersByContent: async (contentId: string) => {
         set({ isLoading: true, error: null });
         try {
             const triggers = await triggerApi.getByContent(contentId);
@@ -60,7 +61,7 @@ export const useTriggerStore = create<TriggerState>((set, _get) => ({
         }
     },
 
-    fetchTriggerStats: async (id: number) => {
+    fetchTriggerStats: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
             const stats = await triggerApi.getStats(id);
@@ -74,7 +75,7 @@ export const useTriggerStore = create<TriggerState>((set, _get) => ({
         }
     },
 
-    createQR: async (contentId: number) => {
+    createQR: async (contentId: string) => {
         set({ isLoading: true, error: null });
         try {
             const trigger = await triggerApi.createQR(contentId);
@@ -92,7 +93,7 @@ export const useTriggerStore = create<TriggerState>((set, _get) => ({
         }
     },
 
-    createShortCode: async (contentId: number) => {
+    createShortCode: async (contentId: string) => {
         set({ isLoading: true, error: null });
         try {
             const trigger = await triggerApi.createShortCode(contentId);
@@ -110,7 +111,7 @@ export const useTriggerStore = create<TriggerState>((set, _get) => ({
         }
     },
 
-    createAudioWatermark: async (contentId: number, audioFile: File) => {
+    createAudioWatermark: async (contentId: string, audioFile: File) => {
         set({ isLoading: true, error: null });
         try {
             const trigger = await triggerApi.createAudioWatermark(contentId, audioFile);
@@ -128,7 +129,7 @@ export const useTriggerStore = create<TriggerState>((set, _get) => ({
         }
     },
 
-    deleteTrigger: async (id: number) => {
+    deleteTrigger: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
             await triggerApi.delete(id);
@@ -145,7 +146,7 @@ export const useTriggerStore = create<TriggerState>((set, _get) => ({
         }
     },
 
-    downloadQR: async (id: number) => {
+    downloadQR: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
             const blob = await triggerApi.downloadQR(id);

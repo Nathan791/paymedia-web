@@ -15,7 +15,6 @@ export function formatFileSize(bytes: number): string {
 
 export function validateContentFile(file: File, mediaType: ContentMediaType): ValidationResult {
     const acceptedTypes: Record<ContentMediaType, string[]> = {
-        'pdf': ['application/pdf'],
         'audio': ['audio/mpeg', 'audio/wav', 'audio/ogg'],
         'video': ['video/mp4', 'video/webm'],
         'epub': ['application/epub+zip'],
@@ -23,7 +22,6 @@ export function validateContentFile(file: File, mediaType: ContentMediaType): Va
     };
 
     const maxSizes: Record<ContentMediaType, number> = {
-        'pdf': 50,
         'audio': 100,
         'video': 200,
         'epub': 25,

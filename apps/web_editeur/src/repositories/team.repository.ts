@@ -3,9 +3,19 @@
 // Flux d'invitation (Master Prompt §28) : on ne crée jamais un compte
 // dupliqué si l'email existe déjà dans l'équipe — on renvoie une erreur
 // claire plutôt que de créer un doublon silencieux.
-import { TeamMember, TeamRole } from '@/models';
 import { MOCK_TEAM_MEMBERS } from '@/data/mock';
 import { delay, generateId } from './_utils';
+
+export type TeamRole = 'journalist' | 'editor_in_chief' | 'media_admin' | 'finance' | string;
+
+export interface TeamMember {
+    id: string;
+    name: string;
+    email: string;
+    role: TeamRole;
+    status: 'active' | 'invited' | 'suspended' | string;
+    joinedAt: string;
+}
 
 let teamDb: TeamMember[] = MOCK_TEAM_MEMBERS.map((m) => ({ ...m }));
 

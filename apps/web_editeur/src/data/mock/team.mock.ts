@@ -1,5 +1,13 @@
 // src/data/mock/team.mock.ts
-import { TeamMember } from '@/models';
+
+export interface TeamMember {
+    id: string;
+    name: string;
+    email: string;
+    role: 'journalist' | 'editor_in_chief' | 'media_admin' | 'finance' | string;
+    status: 'active' | 'invited' | 'suspended' | string;
+    joinedAt: string;
+}
 
 export const MOCK_TEAM_MEMBERS: TeamMember[] = [
     {

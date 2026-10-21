@@ -12,9 +12,7 @@ import {
     SimpleGrid,
     ScrollArea,
     Button,
-    Divider,
     ThemeIcon,
-    Stack,
 } from '@mantine/core';
 import {
     IconArrowLeft,
@@ -24,7 +22,6 @@ import {
     IconShoppingCart,
     IconWallet,
     IconTrendingUp,
-    IconTrendingDown,
     IconClock,
     IconCheck,
     IconX,
@@ -72,14 +69,14 @@ export default function TransactionDetail() {
         );
     }
 
-    //  Couleurs des statuts
+    // Couleurs des statuts
     const statusColors: Record<string, string> = {
         completed: 'green',
         pending: 'yellow',
         failed: 'red',
     };
 
-    //  Icônes des types
+    // Icônes des types
     const typeIcons: Record<string, { icon: any; label: string; color: string }> = {
         recharge: { icon: IconWallet, label: 'Recharge', color: 'green' },
         achat: { icon: IconShoppingCart, label: 'Achat', color: 'blue' },
@@ -89,7 +86,7 @@ export default function TransactionDetail() {
     const typeInfo = typeIcons[transaction.type] || { icon: IconCoin, label: transaction.type, color: 'gray' };
     const TypeIcon = typeInfo.icon;
 
-    //  Icône de statut
+    // Icône de statut
     const getStatusIcon = (status: string) => {
         switch (status) {
             case 'completed': return <IconCheck size={16} />;
@@ -99,7 +96,7 @@ export default function TransactionDetail() {
         }
     };
 
-    //  Format de date
+    // Format de date
     const formatDate = (date: string) => {
         return new Date(date).toLocaleString('fr-FR', {
             day: '2-digit',
@@ -113,7 +110,7 @@ export default function TransactionDetail() {
     return (
         <Container fluid>
             <Box pos="relative">
-                {/*  En-tête avec bouton retour */}
+                {/* En-tête avec bouton retour */}
                 <Group justify="space-between" mb="lg">
                     <Group>
                         <Button
@@ -123,14 +120,14 @@ export default function TransactionDetail() {
                         >
                             Retour
                         </Button>
-                        <Title order={2}> Détail - Transaction #{transaction.id}</Title>
+                        <Title order={2}>Détail - Transaction #{transaction.id}</Title>
                     </Group>
                     <Badge size="lg" color={statusColors[transaction.status]} variant="light">
                         {getStatusIcon(transaction.status)} {transaction.status}
                     </Badge>
                 </Group>
 
-                {/*  Informations principales */}
+                {/* Informations principales */}
                 <Card withBorder p="xl" radius="md" mb="md">
                     <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
                         <Group>
@@ -148,7 +145,7 @@ export default function TransactionDetail() {
                             </ThemeIcon>
                             <div>
                                 <Text size="xs" c="dimmed">Montant</Text>
-                                <Text fw={700} size="lg" color={transaction.type === 'recharge' ? 'green' : 'blue'}>
+                                <Text fw={700} size="lg" c={transaction.type === 'recharge' ? 'green' : 'blue'}>
                                     {transaction.amount.toLocaleString()} FCFA
                                 </Text>
                             </div>
@@ -174,8 +171,8 @@ export default function TransactionDetail() {
                     </SimpleGrid>
                 </Card>
 
-                {/*  Statistiques de l'utilisateur */}
-                <Title order={4} mb="md"> Statistiques de l'utilisateur</Title>
+                {/* Statistiques de l'utilisateur */}
+                <Title order={4} mb="md">Statistiques de l'utilisateur</Title>
 
                 <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md" mb="md">
                     <Card withBorder p="md">
@@ -207,10 +204,10 @@ export default function TransactionDetail() {
                     </Card>
                 </SimpleGrid>
 
-                {/*  Historique de l'utilisateur */}
+                {/* Historique de l'utilisateur */}
                 {transaction.userHistory && transaction.userHistory.length > 0 && (
                     <Card withBorder p="lg" radius="md">
-                        <Title order={5} mb="md"> Historique des transactions</Title>
+                        <Title order={5} mb="md">Historique des transactions</Title>
                         <ScrollArea>
                             {transaction.userHistory.map((item, index) => (
                                 <Group

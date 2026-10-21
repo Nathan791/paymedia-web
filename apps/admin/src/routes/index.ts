@@ -1,10 +1,10 @@
 import { FastifyInstance } from 'fastify';
-import { authRoutes } from './auth.routes';
-import { userRoutes } from './user.route';
-import { contentRoutes } from './content.routes';
-import { dashboardRoutes } from './dashboard.routes';
-import { transactionRoutes } from './transaction.routes';
-import { commissionRoutes } from './commission.routes';
+import { authRoutes } from './auth.routes.js';
+import { userRoutes } from './user.route.js';
+import { contentRoutes } from './content.routes.js';
+import { dashboardRoutes } from './dashboard.routes.js';
+import { transactionRoutes } from './transaction.routes.js';
+import { commissionRoutes } from './commission.routes.js';
 
 export async function registerRoutes(fastify: FastifyInstance) {
     // Health check

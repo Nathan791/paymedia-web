@@ -1,13 +1,61 @@
 // src/data/mock/dashboard.mock.ts
 import { MOCK_CONTENTS } from './contents.mock';
-import { DashboardKPI, CategoryPerformance, TopContent, ActivityEvent } from '@/stores/content.store';
+
+// --- Types locaux pour éviter les erreurs d'import du store ---
+export interface DashboardKPI {
+    totalRevenue: number;
+    revenueTrend: number;
+    totalSales: number;
+    salesTrend: number;
+    totalViews: number;
+    viewsTrend: number;
+    totalLikes: number;
+    likesTrend: number;
+    conversionRate: number;
+    conversionTrend: number;
+    engagementRate: number;
+    engagementTrend: number;
+    publishedContents: number;
+    premiumContents: number;
+    draftContents: number;
+    pendingReviewContents: number;
+}
+
+export interface CategoryPerformance {
+    categoryName: string;
+    likes: number;
+    views: number;
+    purchases: number;
+    revenue: number;
+    engagementRate: number;
+    mediaType: string;
+    contentCount: number;
+}
+
+export interface TopContent {
+    contentId: string | number;
+    title: string;
+    views: number;
+    likes: number;
+    purchases: number;
+    conversionRate: number;
+    revenue: number;
+    categoryName: string;
+    mediaType: string;
+}
+
+export interface ActivityEvent {
+    id: string;
+    type: string;
+    label: string;
+    timestamp: string;
+}
 
 // Calcul des statistiques à partir des contenus réels
 const publishedContents = MOCK_CONTENTS.filter(c => c.status === 'published');
 const premiumContents = MOCK_CONTENTS.filter(c => c.isPremium);
 const draftContents = MOCK_CONTENTS.filter(c => c.status === 'draft');
 const pendingReviewContents = MOCK_CONTENTS.filter(c => c.status === 'pending_review');
-const rejectedContents = MOCK_CONTENTS.filter(c => c.status === 'rejected');
 const archivedContents = MOCK_CONTENTS.filter(c => c.status === 'archived');
 
 // Calcul des KPIs réels
@@ -16,8 +64,6 @@ const totalSales = publishedContents.reduce((sum, c) => sum + (c.stats?.purchase
 const totalViews = publishedContents.reduce((sum, c) => sum + (c.stats?.views || 0), 0);
 const totalLikes = publishedContents.reduce((sum, c) => sum + (c.stats?.likes || 0), 0);
 
-
-
 // Calcul du taux de conversion moyen
 const avgConversion = publishedContents.length > 0
     ? publishedContents.reduce((sum, c) => sum + (c.stats?.conversionRate || 0), 0) / publishedContents.length
@@ -25,7 +71,7 @@ const avgConversion = publishedContents.length > 0
 
 // KPIs du dashboard
 export const MOCK_DASHBOARD_KPI: DashboardKPI = {
-    totalRevenue: totalRevenue || 1955200, // Fallback si pas de données
+    totalRevenue: totalRevenue || 1955200,
     revenueTrend: 12.5,
     totalSales: totalSales || 1847,
     salesTrend: 8.3,
@@ -43,7 +89,7 @@ export const MOCK_DASHBOARD_KPI: DashboardKPI = {
     pendingReviewContents: pendingReviewContents.length,
 };
 
-// Série de revenus (30 derniers jours) - générée à partir des données
+// Série de revenus (30 derniers jours)
 export const MOCK_REVENUE_SERIES = [
     { date: '2026-07-20', revenue: 8200 },
     { date: '2026-07-21', revenue: 9500 },
@@ -77,7 +123,7 @@ export const MOCK_REVENUE_SERIES = [
     { date: '2026-08-18', revenue: 42300 },
 ];
 
-// Performances par catégorie - calculées à partir des contenus
+// Performances par catégorie
 export const MOCK_CATEGORY_PERFORMANCE: CategoryPerformance[] = (() => {
     const categories = ['Actualités', 'Enquêtes', 'Culture', 'Sport', 'Podcasts', 'Documentaires'];
     const mediaTypes: Record<string, string> = {
@@ -89,7 +135,7 @@ export const MOCK_CATEGORY_PERFORMANCE: CategoryPerformance[] = (() => {
         'Documentaires': 'video',
     };
 
-    return categories.map((cat, index) => {
+    return categories.map((cat) => {
         const contentsInCat = MOCK_CONTENTS.filter(c => c.category?.name === cat && c.status === 'published');
         const likes = Math.floor(Math.random() * 300) + 100;
         const views = contentsInCat.reduce((sum, c) => sum + (c.stats?.views || 0), 0) || Math.floor(Math.random() * 3000) + 500;
@@ -109,7 +155,7 @@ export const MOCK_CATEGORY_PERFORMANCE: CategoryPerformance[] = (() => {
     });
 })();
 
-// Top contenus - directement depuis MOCK_CONTENTS
+// Top contenus
 export const MOCK_TOP_CONTENTS: TopContent[] = MOCK_CONTENTS
     .filter(c => c.status === 'published')
     .sort((a, b) => (b.stats?.views || 0) - (a.stats?.views || 0))
@@ -154,8 +200,8 @@ export const MOCK_ACTIVITY: ActivityEvent[] = [
     },
     {
         id: 'act_5',
-        type: 'content_rejected',
-        label: `Contenu refusé : "${MOCK_CONTENTS[4]?.title || 'Contenu'}" - motif : qualité insuffisante`,
+        type: 'content_archived',
+        label: `Contenu archivé : "${MOCK_CONTENTS[4]?.title || 'Contenu'}" - motif : obsolète`,
         timestamp: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
     },
     {

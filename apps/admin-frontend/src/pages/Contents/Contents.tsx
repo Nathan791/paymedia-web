@@ -71,37 +71,21 @@ export default function Contents() {
             setLoading(true);
             const response = await contentApi.getAll();
 
-            console.log(' Réponse brute des contenus:', response);
-            console.log(' Data:', response.data);
-            console.log(' Data.data:', response.data.data);
-
-            //  Extraction du tableau quel que soit le format
             let contentsData = [];
 
-            // Format 1: { data: [...] }
             if (Array.isArray(response.data.data)) {
                 contentsData = response.data.data;
-            }
-            else if (response.data.data?.items && Array.isArray(response.data.data.items)) {
+            } else if (response.data.data?.items && Array.isArray(response.data.data.items)) {
                 contentsData = response.data.data.items;
-            }
-
-            else if (response.data.data?.content && Array.isArray(response.data.data.content)) {
+            } else if (response.data.data?.content && Array.isArray(response.data.data.content)) {
                 contentsData = response.data.data.content;
-            }
-            else if (response.data.data?.results && Array.isArray(response.data.data.results)) {
+            } else if (response.data.data?.results && Array.isArray(response.data.data.results)) {
                 contentsData = response.data.data.results;
-            }
-            else if (Array.isArray(response.data)) {
+            } else if (Array.isArray(response.data)) {
                 contentsData = response.data;
-            }
-
-            else if (response.data?.success && Array.isArray(response.data.data)) {
+            } else if (response.data?.success && Array.isArray(response.data.data)) {
                 contentsData = response.data.data;
-            }
-
-            else {
-                // Chercher la première propriété qui est un tableau
+            } else {
                 for (const key in response.data.data) {
                     if (Array.isArray(response.data.data[key])) {
                         contentsData = response.data.data[key];
@@ -110,11 +94,9 @@ export default function Contents() {
                 }
             }
 
-            console.log(' Tableau extrait:', contentsData);
-
             setContents(contentsData);
         } catch (error) {
-            console.error(' Erreur:', error);
+            console.error('Erreur:', error);
         } finally {
             setLoading(false);
         }
@@ -184,7 +166,7 @@ export default function Contents() {
             await fetchContents();
             closeModal();
         } catch (error: any) {
-            setFormError(error.response?.data?.error || 'Erreur lors de l\'enregistrement');
+            setFormError(error.response?.data?.error || "Erreur lors de l'enregistrement");
         } finally {
             setFormLoading(false);
         }
@@ -214,7 +196,7 @@ export default function Contents() {
             await contentApi.approve(id);
             await fetchContents();
         } catch (error) {
-            alert('Erreur lors de l\'approbation');
+            alert("Erreur lors de l'approbation");
         }
     };
 
@@ -244,7 +226,7 @@ export default function Contents() {
             await contentApi.archive(id);
             await fetchContents();
         } catch (error) {
-            alert('Erreur lors de l\'archivage');
+            alert("Erreur lors de l'archivage");
         }
     };
 
@@ -253,9 +235,14 @@ export default function Contents() {
     // ============================================================
 
     const filteredContents = contents.filter((content) => {
+        const authorName = typeof content.author === 'object' && content.author !== null
+            ? (content.author as any).username || ''
+            : String(content.author || '');
+
         const matchSearch =
             content.title.toLowerCase().includes(search.toLowerCase()) ||
-            content.author?.toLowerCase().includes(search.toLowerCase());
+            authorName.toLowerCase().includes(search.toLowerCase());
+
         const matchStatus = statusFilter ? content.status === statusFilter : true;
         return matchSearch && matchStatus;
     });
@@ -302,7 +289,7 @@ export default function Contents() {
             <Box pos="relative">
                 <LoadingOverlay visible={loading} />
 
-                {/*  En-tête avec bouton Ajouter */}
+                {/* En-tête avec bouton Ajouter */}
                 <Group justify="space-between" mb="lg">
                     <div>
                         <Title order={2}> Contenus</Title>
@@ -326,7 +313,7 @@ export default function Contents() {
                     </Group>
                 </Group>
 
-                {/*  Filtres */}
+                {/* Filtres */}
                 <Card withBorder p="md" mb="md">
                     <Group>
                         <TextInput
@@ -353,7 +340,7 @@ export default function Contents() {
                     </Group>
                 </Card>
 
-                {/*  Tableau */}
+                {/* Tableau */}
                 <Card withBorder p="0" style={{ overflow: 'auto' }}>
                     <Table striped highlightOnHover>
                         <Table.Thead>
@@ -367,7 +354,7 @@ export default function Contents() {
                             </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>
-                            {paginatedContents.map((content) => (
+                            {paginatedContents.map((content: Content) => (
                                 <Table.Tr
                                     key={content.id}
                                     style={{ cursor: 'pointer' }}
@@ -375,12 +362,15 @@ export default function Contents() {
                                 >
                                     <Table.Td>#{content.id}</Table.Td>
                                     <Table.Td fw={500}>{content.title}</Table.Td>
-                                    {/*  Auteur : utiliser une valeur par défaut si non présent */}
-                                    <Table.Td>{content.author?.username || 'Inconnu'}</Table.Td>
+                                    <Table.Td>
+                                        {typeof content.author === 'object' && content.author !== null
+                                            ? (content.author as any).username || 'Inconnu'
+                                            : content.author || 'Inconnu'}
+                                    </Table.Td>
                                     <Table.Td>{content.price?.toLocaleString() || 0} FCFA</Table.Td>
                                     <Table.Td>{getStatusBadge(content.status)}</Table.Td>
                                     <Table.Td style={{ textAlign: 'center' }}>
-                                        <Group gap="xs" justify="center" wrap="nowrap">
+                                        <Group gap="xs" justify="center" wrap="nowrap" onClick={(e) => e.stopPropagation()}>
                                             {content.status === 'pending' && (
                                                 <Button size="xs" color="green" onClick={() => handleApprove(content.id)}>
                                                     Approuver
@@ -437,7 +427,7 @@ export default function Contents() {
                     </Table>
                 </Card>
 
-                {/*  Pagination */}
+                {/* Pagination */}
                 {totalPages > 1 && (
                     <Group justify="center" mt="md">
                         <Pagination
@@ -453,7 +443,7 @@ export default function Contents() {
                     Affichage de {paginatedContents.length} sur {filteredContents.length} contenu(s)
                 </Text>
 
-                {/*  MODAL : AJOUT / MODIFICATION */}
+                {/* MODAL : AJOUT / MODIFICATION */}
                 <Modal
                     opened={modalOpened}
                     onClose={closeModal}
@@ -533,7 +523,7 @@ export default function Contents() {
                     </Stack>
                 </Modal>
 
-                {/*  MODAL : SUPPRESSION */}
+                {/* MODAL : SUPPRESSION */}
                 <Modal
                     opened={deleteModalOpened}
                     onClose={closeDeleteModal}

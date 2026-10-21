@@ -1,3 +1,4 @@
+// src/pages/EditorContents.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -437,9 +438,9 @@ export const EditorContents = () => {
                                                     </Menu.Target>
 
                                                     <Menu.Dropdown>
-                                                        {content.status !==
+                                                        {(content.status as string) !==
                                                             'publie' &&
-                                                            content.status !==
+                                                            (content.status as string) !==
                                                             'published' && (
                                                                 <Menu.Item
                                                                     leftSection={
@@ -464,7 +465,7 @@ export const EditorContents = () => {
                                                                 </Menu.Item>
                                                             )}
 
-                                                        {content.status !==
+                                                        {(content.status as string) !==
                                                             'bloque' && (
                                                                 <Menu.Item
                                                                     leftSection={
@@ -489,7 +490,7 @@ export const EditorContents = () => {
                                                                 </Menu.Item>
                                                             )}
 
-                                                        {content.status !==
+                                                        {(content.status as string) !==
                                                             'archive' && (
                                                                 <Menu.Item
                                                                     leftSection={

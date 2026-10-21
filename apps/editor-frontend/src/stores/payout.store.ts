@@ -1,3 +1,4 @@
+// src/stores/payout.store.ts
 import { create } from 'zustand';
 import { payoutApi } from '@/api/payout.api';
 import { Payout, PayoutStats } from '@/models';
@@ -18,9 +19,9 @@ interface PayoutState {
 
     // Actions
     fetchPayouts: (filters?: PayoutState['filters']) => Promise<void>;
-    fetchPayout: (id: number) => Promise<void>;
+    fetchPayout: (id: string) => Promise<void>;
     fetchStats: () => Promise<void>;
-    downloadStatement: (id: number) => Promise<Blob>;
+    downloadStatement: (id: string) => Promise<Blob>;
     setFilters: (filters: Partial<PayoutState['filters']>) => void;
     clearError: () => void;
     reset: () => void;
@@ -61,7 +62,7 @@ export const usePayoutStore = create<PayoutState>((set, get) => ({
     },
 
     // Récupérer un reversement spécifique
-    fetchPayout: async (id: number) => {
+    fetchPayout: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
             const payout = await payoutApi.getOne(id);
@@ -97,7 +98,7 @@ export const usePayoutStore = create<PayoutState>((set, get) => ({
     },
 
     // Télécharger un relevé de reversement
-    downloadStatement: async (id: number) => {
+    downloadStatement: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
             const blob = await payoutApi.downloadStatement(id);

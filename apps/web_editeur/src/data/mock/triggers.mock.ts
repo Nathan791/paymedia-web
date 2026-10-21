@@ -1,5 +1,21 @@
 // src/data/mock/triggers.mock.ts
-import { Trigger } from '@/models';
+
+export interface Trigger {
+    id: string;
+    type: 'qr_code' | 'audio_watermark' | 'short_code' | string;
+    label: string;
+    code: string;
+    contentId: string;
+    contentTitle: string;
+    campaign: string;
+    status: 'active' | 'paused' | 'expired' | string;
+    createdAt: string;
+    expiresAt: string | null;
+    stats: {
+        scans: number;
+        conversions: number;
+    };
+}
 
 export const MOCK_TRIGGERS: Trigger[] = [
     {

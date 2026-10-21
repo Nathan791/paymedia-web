@@ -91,7 +91,7 @@ export const EditorDashboard = () => {
                                 <Box>
                                     <Text size="xs" c="dimmed" fw={500} tt="uppercase">Publiés</Text>
                                     <Text size="xl" fw={700} c="#228be6">
-                                        {contentsArray.filter(c => c.status === 'publie').length}
+                                        {contentsArray.filter(c => c.status === 'published').length}
                                     </Text>
                                 </Box>
                                 <Box

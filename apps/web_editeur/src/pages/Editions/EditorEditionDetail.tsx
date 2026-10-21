@@ -30,9 +30,9 @@ export function EditorEditionDetail() {
 
     useEffect(() => {
         if (id) fetchEdition(id);
-        fetchContents('published'); // seuls des contenus publiés intègrent une édition
+        fetchContents();
         return () => clearError();
-    }, [id]);
+    }, [id, fetchContents, fetchEdition, clearError]);
 
     const run = async (action: () => Promise<void>, successTitle: string) => {
         try {

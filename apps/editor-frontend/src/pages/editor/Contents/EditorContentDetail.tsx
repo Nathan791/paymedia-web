@@ -39,8 +39,9 @@ export const EditorContentDetail = () => {
         if (!confirm(`Voulez-vous vraiment supprimer "${currentContent.title}" ?`)) return;
 
         try {
-            //  Utiliser ulid pour la suppression
-            await deleteContent(currentContent.ulid || currentContent.id);
+            // Conversion explicite en string pour satisfaire TS2345
+            const contentId = String(currentContent.ulid || currentContent.id);
+            await deleteContent(contentId);
             notifications.show({
                 title: 'Succès',
                 message: 'Contenu supprimé avec succès',
@@ -94,8 +95,8 @@ export const EditorContentDetail = () => {
 
     const mediaInfo = getMediaIcon(currentContent.mediaType);
 
-    //  Récupérer l'URL de couverture (coverUrl ou coverImage)
-    const coverUrl = currentContent.coverUrl || currentContent.coverImage || null;
+    // Normalisation sécurisée de l'URL de couverture (conversion des null/undefined)
+    const coverUrl = currentContent.coverUrl ?? (currentContent as any).coverImage ?? undefined;
 
     return (
         <Container size="lg" py="xl">
@@ -116,7 +117,6 @@ export const EditorContentDetail = () => {
                             variant="light"
                             color="yellow"
                             leftSection={<IconEdit size={16} />}
-
                             onClick={() => navigate(`/editor/contents/${currentContent.ulid || currentContent.id}/edit`)}
                         >
                             Modifier
@@ -230,7 +230,7 @@ export const EditorContentDetail = () => {
                             <Group>
                                 <Button
                                     component="a"
-                                    href={currentContent.fileUrl}
+                                    href={currentContent.fileUrl ?? undefined}
                                     target="_blank"
                                     variant="outline"
                                     leftSection={<IconFileText size={16} />}

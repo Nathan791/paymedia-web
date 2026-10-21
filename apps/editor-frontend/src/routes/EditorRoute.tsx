@@ -1,7 +1,9 @@
+// src/components/routes/EditorRoute.tsx
+import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores';
 
-export const EditorRoute = ({ children }: { children: JSX.Element }) => {
+export const EditorRoute = ({ children }: { children: React.ReactNode }) => {
     const { user, isAuthenticated, isLoading } = useAuthStore();
 
     console.log('🔵 EditorRoute - isLoading:', isLoading);
@@ -37,5 +39,5 @@ export const EditorRoute = ({ children }: { children: JSX.Element }) => {
     }
 
     console.log('🟢 EditorRoute - Accès autorisé');
-    return children;
+    return <>{children}</>;
 };

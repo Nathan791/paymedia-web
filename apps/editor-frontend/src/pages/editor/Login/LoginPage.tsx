@@ -1,3 +1,4 @@
+// src/pages/LoginPage.tsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -10,8 +11,8 @@ import {
     Stack,
     Anchor,
     Divider,
-    Alert,
     Box,
+    Alert,
 } from '@mantine/core';
 import { useAuthStore } from '@/stores';
 import paymediaLogo from '@/assets/logo_paymedia_1.png';
@@ -170,9 +171,9 @@ export const LoginPage = () => {
                     <Divider
                         label="Nouveau sur PayMedia ?"
                         labelPosition="center"
+                        style={{ borderColor: 'rgba(12, 175, 122, 0.12)' }}
                         styles={{
                             label: { color: '#718096', fontSize: 12, fontWeight: 500 },
-                            divider: { borderColor: 'rgba(12, 175, 122, 0.12)' },
                         }}
                     />
 

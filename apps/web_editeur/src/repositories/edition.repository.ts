@@ -7,9 +7,9 @@ import { delay, generateId, generateUlid } from './_utils';
 let editionsDb: Edition[] = MOCK_EDITIONS.map((e) => ({ ...e }));
 
 async function resolve(edition: Edition): Promise<EditionWithContents> {
-    const allContents = await contentRepository.list();
+    const allContents = await contentRepository.listMyContents();
     const contents = edition.contentIds
-        .map((id) => allContents.find((c) => c.id === id))
+        .map((id) => allContents.find((c: any) => c.id === id))
         .filter((c): c is NonNullable<typeof c> => Boolean(c));
     return { ...edition, contents };
 }

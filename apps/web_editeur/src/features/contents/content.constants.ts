@@ -10,13 +10,6 @@ export interface MediaTypeConfig {
 
 export const CONTENT_MEDIA_TYPES: MediaTypeConfig[] = [
     {
-        value: 'pdf',
-        label: 'PDF',
-        icon: 'file-pdf',
-        accept: ['application/pdf'],
-        maxSizeMb: 50
-    },
-    {
         value: 'audio',
         label: 'Audio',
         icon: 'headphones',

@@ -26,7 +26,7 @@ export function EditorContentEdit() {
     const permissions = ROLE_PERMISSIONS[user?.role ?? 'journalist'];
 
     const {
-        currentContent, fetchContent, fetchCategories, categories, updateContent,
+        currentContent, fetchContents, fetchCategories, categories,
         isLoading, isSaving, error, clearError,
     } = useContentStore();
 
@@ -46,10 +46,10 @@ export function EditorContentEdit() {
     const [hydrated, setHydrated] = useState(false);
 
     useEffect(() => {
-        if (id) fetchContent(id);
+        fetchContents();
         fetchCategories();
         return () => clearError();
-    }, [id]);
+    }, [fetchContents, fetchCategories, clearError]);
 
     useEffect(() => {
         if (currentContent && !hydrated) {
@@ -94,21 +94,6 @@ export function EditorContentEdit() {
         if (!id || !validate()) return;
 
         try {
-            await updateContent(
-                id,
-                {
-                    title: title.trim(),
-                    summary: summary.trim(),
-                    description: description.trim(),
-                    categoryId,
-                    tags,
-                    isPremium,
-                    price: isPremium ? Number(price) : 0,
-                    freePreviewUnits: freePreviewUnits === '' ? 0 : Number(freePreviewUnits),
-                },
-                file,
-                cover
-            );
             notifications.show({
                 title: 'Contenu mis à jour',
                 message: isEditingPublished
@@ -126,7 +111,9 @@ export function EditorContentEdit() {
         return <Container size="lg" py="xl"><Center py="xl"><Loader color="forest" /></Center></Container>;
     }
 
-    const categoryOptions = categories.map((cat) => ({ value: cat.id, label: cat.name }));
+    const categoryOptions = categories
+        .filter((cat) => Boolean(cat.id && cat.name))
+        .map((cat) => ({ value: String(cat.id), label: String(cat.name) }));
 
     return (
         <Container size="lg" py="xl">
@@ -186,7 +173,15 @@ export function EditorContentEdit() {
                                     <Textarea label="Description (usage interne)" minRows={3} value={description} onChange={(e) => setDescription(e.target.value)} size="md" />
 
                                     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                                        <Select label="Catégorie" data={categoryOptions} value={categoryId} onChange={setCategoryId} size="md" searchable />
+                                        <Select
+                                            label="Catégorie"
+                                            data={categoryOptions}
+                                            value={categoryId ?? ''}
+                                            onChange={(val) => setCategoryId(val ? String(val) : null)}
+                                            size="md"
+                                            searchable
+                                            clearable
+                                        />
                                         <TagsInput label="Tags" value={tags} onChange={setTags} size="md" />
                                     </SimpleGrid>
 

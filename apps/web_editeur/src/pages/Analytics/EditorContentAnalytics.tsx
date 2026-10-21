@@ -30,17 +30,18 @@ export function EditorContentAnalytics() {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
 
-    const { currentContent, fetchContent, isLoading: isContentLoading, error: contentError } = useContentStore();
+    const { currentContent, fetchContents, isLoading: isContentLoading, error: contentError } = useContentStore();
     const { contentSeries, isContentSeriesLoading, fetchContentSeries, error: seriesError } = useAnalyticsStore();
     const { accessPoints, fetchAccessPoints } = useAccessStore();
 
     useEffect(() => {
         if (id) {
-            fetchContent(id);
+            // Utilisation de fetchContents ou de la méthode de récupération globale
+            fetchContents();
             fetchContentSeries(id);
             fetchAccessPoints(id);
         }
-    }, [id]);
+    }, [id, fetchContents, fetchContentSeries, fetchAccessPoints]);
 
     const series = id ? contentSeries[id] : undefined;
 

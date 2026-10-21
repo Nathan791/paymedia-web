@@ -123,11 +123,14 @@ export const analyticsRepository = {
 
         await delay(null, 400);
 
-        const content =
-            await contentRepository.getById(contentId);
+        // Récupération sécurisée via listMyContents ou équivalent disponible
+        const contents = await contentRepository.listMyContents();
+        const content = contents.find((c) => String(c.id) === String(contentId));
 
         if (
+            !content ||
             content.status !== 'published' ||
+            !content.stats ||
             content.stats.views === 0
         ) {
             return [];
@@ -161,7 +164,8 @@ export const analyticsRepository = {
             const views = isLast
                 ? content.stats.views - runningViews
                 : Math.round(
-                    content.stats.views * share
+                    content.stats.views *
+                    share
                 );
 
             const purchases = isLast

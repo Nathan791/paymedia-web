@@ -1,7 +1,17 @@
 // src/repositories/trigger.repository.ts
-import { Trigger, TriggerStatus } from '@/models';
-import { MOCK_TRIGGERS } from '@/data/mock';
+import { MOCK_TRIGGERS } from '@/data/mock/triggers.mock';
 import { delay } from './_utils';
+
+export type TriggerStatus = 'active' | 'paused' | 'expired' | string;
+
+export interface Trigger {
+    id: string;
+    label: string; // Remplacé de 'title' à 'label' pour coller au mock
+    type: string;
+    status: TriggerStatus;
+    createdAt: string;
+    [key: string]: any;
+}
 
 let triggersDb: Trigger[] = MOCK_TRIGGERS.map((t) => ({ ...t }));
 

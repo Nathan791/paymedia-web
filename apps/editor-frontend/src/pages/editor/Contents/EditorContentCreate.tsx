@@ -1,3 +1,4 @@
+// src/pages/EditorContentCreate.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -99,7 +100,7 @@ export const EditorContentCreate = () => {
             }
 
             setUploadProgress(10);
-            const content = await createContent(formDataToSend);
+            await createContent(formDataToSend);
             setUploadProgress(100);
 
             alert('Contenu créé avec succès !');

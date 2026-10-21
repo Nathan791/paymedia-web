@@ -1,3 +1,4 @@
+// src/stores/transaction.store.ts
 import { create } from 'zustand';
 import { transactionApi } from '@/api/transaction.api';
 import { Transaction, TransactionStats } from '@/models';
@@ -13,13 +14,13 @@ interface TransactionState {
     filters: {
         start_date?: string;
         end_date?: string;
-        content_id?: number;
+        content_id?: string;
         status?: string;
     };
 
     // Actions
     fetchTransactions: (filters?: TransactionState['filters']) => Promise<void>;
-    fetchTransaction: (id: number) => Promise<void>;
+    fetchTransaction: (id: string) => Promise<void>;
     fetchStats: (filters?: { start_date?: string; end_date?: string }) => Promise<void>;
     exportCSV: (filters?: { start_date?: string; end_date?: string }) => Promise<Blob>;
     setFilters: (filters: Partial<TransactionState['filters']>) => void;
@@ -62,7 +63,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     },
 
     // Récupérer une transaction spécifique
-    fetchTransaction: async (id: number) => {
+    fetchTransaction: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
             const transaction = await transactionApi.getOne(id);

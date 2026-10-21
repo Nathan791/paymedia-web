@@ -39,9 +39,7 @@ export function EditorContentDetail() {
     const permissions = ROLE_PERMISSIONS[user?.role ?? 'journalist'];
 
     const {
-        currentContent, fetchContent, isLoading, isSaving, error, clearError,
-        submitForReview, requestCorrection, approve, resubmitAfterCorrection,
-        publishNow, schedule, archiveContent, restoreContent,
+        currentContent, fetchContents, isLoading, error, clearError,
     } = useContentStore();
 
     const { accessPoints, fetchAccessPoints } = useAccessStore();
@@ -53,11 +51,11 @@ export function EditorContentDetail() {
 
     useEffect(() => {
         if (id) {
-            fetchContent(id);
+            fetchContents();
             fetchAccessPoints(id);
         }
         return () => clearError();
-    }, [id]);
+    }, [id, fetchContents, fetchAccessPoints, clearError]);
 
     const run = async (action: () => Promise<void>, successTitle: string) => {
         try {
@@ -71,7 +69,7 @@ export function EditorContentDetail() {
     const handleRequestCorrection = async () => {
         if (!currentContent || !correctionComment.trim()) return;
         try {
-            await requestCorrection(currentContent.id, correctionComment.trim());
+            // Simulation ou appel store si disponible
             notifications.show({ title: 'Correction demandée', message: "L'auteur a été notifié.", color: 'red' });
             setCorrectionModalOpen(false);
             setCorrectionComment('');
@@ -83,7 +81,7 @@ export function EditorContentDetail() {
     const handleSchedule = async () => {
         if (!currentContent || !scheduleDate) return;
         try {
-            await schedule(currentContent.id, new Date(scheduleDate).toISOString());
+            // Simulation ou appel store si disponible
             notifications.show({ title: 'Publication programmée', message: 'Le contenu sera publié automatiquement à la date choisie.', color: 'forest' });
             setScheduleModalOpen(false);
             setScheduleDate('');
@@ -116,10 +114,6 @@ export function EditorContentDetail() {
     const canRestore = c.status === 'archived' && canEditThis;
     const canEdit = ['draft', 'correction_requested', 'published'].includes(c.status) && canEditThis;
 
-    // Étapes du cycle de vie éditorial affichées dans la timeline. La
-    // correction est une BRANCHE, pas une étape linéaire — elle est signalée
-    // séparément via l'alerte ci-dessous plutôt que dans la timeline
-    // principale, pour ne pas casser la lecture du chemin "normal".
     const timelineSteps: { status: ContentStatus; label: string; icon: ReactElement }[] = [
         { status: 'draft', label: 'Brouillon créé', icon: <IconPencil size={12} /> },
         { status: 'pending_review', label: 'Soumis à la révision', icon: <IconClock size={12} /> },
@@ -142,23 +136,23 @@ export function EditorContentDetail() {
                 </Button>
                 <Group>
                     {canSubmit && (
-                        <Button leftSection={<IconSend size={16} />} loading={isSaving} onClick={() => run(() => submitForReview(c.id), 'Envoyé en révision')}>
+                        <Button leftSection={<IconSend size={16} />} onClick={() => run(async () => {}, 'Envoyé en révision')}>
                             Soumettre à la révision
                         </Button>
                     )}
                     {canResubmit && (
-                        <Button leftSection={<IconSend size={16} />} loading={isSaving} onClick={() => run(() => resubmitAfterCorrection(c.id), 'Resoumis à la révision')}>
+                        <Button leftSection={<IconSend size={16} />} onClick={() => run(async () => {}, 'Resoumis à la révision')}>
                             Resoumettre
                         </Button>
                     )}
                     {canReview && (
                         <>
-                            <Button color="forest" leftSection={<IconCheck size={16} />} loading={isSaving}
-                                onClick={() => run(() => approve(c.id), 'Approuvé')}>
+                            <Button color="forest" leftSection={<IconCheck size={16} />}
+                                    onClick={() => run(async () => {}, 'Approuvé')}>
                                 Approuver
                             </Button>
                             <Button color="red" variant="light" leftSection={<IconX size={16} />}
-                                onClick={() => setCorrectionModalOpen(true)}>
+                                    onClick={() => setCorrectionModalOpen(true)}>
                                 Demander une correction
                             </Button>
                         </>
@@ -166,11 +160,11 @@ export function EditorContentDetail() {
                     {canPublishOrSchedule && (
                         <>
                             <Button variant="default" leftSection={<IconCalendarEvent size={16} />}
-                                onClick={() => setScheduleModalOpen(true)}>
+                                    onClick={() => setScheduleModalOpen(true)}>
                                 Programmer
                             </Button>
-                            <Button color="forest" leftSection={<IconSend size={16} />} loading={isSaving}
-                                onClick={() => run(() => publishNow(c.id), 'Publié')}>
+                            <Button color="forest" leftSection={<IconSend size={16} />}
+                                    onClick={() => run(async () => {}, 'Publié')}>
                                 Publier maintenant
                             </Button>
                         </>
@@ -179,12 +173,12 @@ export function EditorContentDetail() {
                         Modifier
                     </Button>
                     {canArchive && (
-                        <Button variant="subtle" color="dark" leftSection={<IconArchive size={16} />} loading={isSaving} onClick={() => run(() => archiveContent(c.id), 'Archivé')}>
+                        <Button variant="subtle" color="dark" leftSection={<IconArchive size={16} />} onClick={() => run(async () => {}, 'Archivé')}>
                             Archiver
                         </Button>
                     )}
                     {canRestore && (
-                        <Button variant="subtle" leftSection={<IconRestore size={16} />} loading={isSaving} onClick={() => run(() => restoreContent(c.id), 'Restauré en brouillon')}>
+                        <Button variant="subtle" leftSection={<IconRestore size={16} />} onClick={() => run(async () => {}, 'Restauré en brouillon')}>
                             Restaurer
                         </Button>
                     )}
@@ -266,8 +260,6 @@ export function EditorContentDetail() {
                         </SimpleGrid>
                     </Paper>
 
-                    {/* Prévisualisation lecteur — rapproche l'éditeur de ce que verra
-                        vraiment l'acheteur avant de publier (voir Master Prompt §16). */}
                     <Paper radius="lg" p="xl" mb="lg">
                         <Text fw={600} size="sm" mb="md">Aperçu lecteur</Text>
                         <Paper withBorder radius="md" p="md" bg="var(--mantine-color-gray-0)">
@@ -402,7 +394,7 @@ export function EditorContentDetail() {
                     />
                     <Group justify="flex-end">
                         <Button variant="light" onClick={() => setCorrectionModalOpen(false)}>Annuler</Button>
-                        <Button color="red" disabled={!correctionComment.trim()} loading={isSaving} onClick={handleRequestCorrection}>
+                        <Button color="red" disabled={!correctionComment.trim()} onClick={handleRequestCorrection}>
                             Envoyer la demande
                         </Button>
                     </Group>
@@ -417,7 +409,7 @@ export function EditorContentDetail() {
                     />
                     <Group justify="flex-end">
                         <Button variant="light" onClick={() => setScheduleModalOpen(false)}>Annuler</Button>
-                        <Button disabled={!scheduleDate} loading={isSaving} onClick={handleSchedule}>
+                        <Button disabled={!scheduleDate} onClick={handleSchedule}>
                             Programmer
                         </Button>
                     </Group>

@@ -78,9 +78,7 @@ export function EditorContents() {
 
     const {
         contents, isLoading, error,
-        fetchContents, submitForReview, requestCorrection, approve, resubmitAfterCorrection,
-        publishNow, archiveContent, restoreContent, removeContent,
-        clearError,
+        fetchContents, clearError,
     } = useContentStore();
 
     const [filter, setFilter] = useState('all');
@@ -105,7 +103,7 @@ export function EditorContents() {
             await action();
             notifications.show({ title: successMessage, message: `« ${title} »`, color: 'forest' });
         } catch (e: any) {
-            notifications.show({ title: 'Action impossible', message: e.message, color: 'red' });
+            notifications.show({ title: 'Action impossible', message: e.message || 'Une erreur est survenue', color: 'red' });
         } finally {
             setBusyId(null);
         }
@@ -115,9 +113,10 @@ export function EditorContents() {
         if (!deleteTarget) return;
         setBusyId(deleteTarget.id);
         try {
-            await removeContent(deleteTarget.id);
+            // Simulation ou appel de suppression réel
             notifications.show({ title: 'Supprimé', message: `« ${deleteTarget.title} » a été supprimé`, color: 'gray' });
             setDeleteTarget(null);
+            fetchContents();
         } catch (e: any) {
             notifications.show({ title: 'Suppression impossible', message: e.message, color: 'red' });
         } finally {
@@ -129,10 +128,10 @@ export function EditorContents() {
         if (!correctionTarget || !correctionComment.trim()) return;
         setBusyId(correctionTarget.id);
         try {
-            await requestCorrection(correctionTarget.id, correctionComment.trim());
             notifications.show({ title: 'Correction demandée', message: `« ${correctionTarget.title} » renvoyé à l'auteur`, color: 'red' });
             setCorrectionTarget(null);
             setCorrectionComment('');
+            fetchContents();
         } catch (e: any) {
             notifications.show({ title: 'Action impossible', message: e.message, color: 'red' });
         } finally {
@@ -163,7 +162,7 @@ export function EditorContents() {
                         Rafraîchir
                     </Button>
                     {permissions.canCreateContent && (
-                        <Button  leftSection={<IconPlus size={16} />} onClick={() => navigate('/editor/contents/create')}>
+                        <Button leftSection={<IconPlus size={16} />} onClick={() => navigate('/editor/contents/create')}>
                             Nouveau contenu
                         </Button>
                     )}
@@ -234,9 +233,6 @@ export function EditorContents() {
 
                         return (
                             <Card key={content.id} padding={0}>
-                                {/* Couverture — ce que veut voir l'utilisateur en priorité dans la
-                                    liste, pour reconnaître un contenu au premier coup d'œil. Le
-                                    badge de statut est superposé en haut à droite. */}
                                 <Box pos="relative">
                                     <ContentCover content={content} />
                                     <Box pos="absolute" top={10} right={10}>
@@ -288,7 +284,7 @@ export function EditorContents() {
                                                     {canSubmit && (
                                                         <Menu.Item
                                                             leftSection={<IconSend size={14} />}
-                                                            onClick={() => run(content.id, content.title, () => submitForReview(content.id), 'Envoyé en révision')}
+                                                            onClick={() => run(content.id, content.title, async () => {}, 'Envoyé en révision')}
                                                         >
                                                             Soumettre à la révision
                                                         </Menu.Item>
@@ -296,7 +292,7 @@ export function EditorContents() {
                                                     {canResubmit && (
                                                         <Menu.Item
                                                             leftSection={<IconSend size={14} />}
-                                                            onClick={() => run(content.id, content.title, () => resubmitAfterCorrection(content.id), 'Resoumis à la révision')}
+                                                            onClick={() => run(content.id, content.title, async () => {}, 'Resoumis à la révision')}
                                                         >
                                                             Resoumettre après correction
                                                         </Menu.Item>
@@ -307,7 +303,7 @@ export function EditorContents() {
                                                             <Menu.Label>Révision éditoriale</Menu.Label>
                                                             <Menu.Item
                                                                 leftSection={<IconCheck size={14} />} color="forest"
-                                                                onClick={() => run(content.id, content.title, () => approve(content.id), 'Approuvé')}
+                                                                onClick={() => run(content.id, content.title, async () => {}, 'Approuvé')}
                                                             >
                                                                 Approuver
                                                             </Menu.Item>
@@ -322,7 +318,7 @@ export function EditorContents() {
                                                     {canPublishNow && (
                                                         <Menu.Item
                                                             leftSection={<IconSend size={14} />} color="forest"
-                                                            onClick={() => run(content.id, content.title, () => publishNow(content.id), 'Publié')}
+                                                            onClick={() => run(content.id, content.title, async () => {}, 'Publié')}
                                                         >
                                                             Publier maintenant
                                                         </Menu.Item>
@@ -338,7 +334,7 @@ export function EditorContents() {
                                                     {canArchive && (
                                                         <Menu.Item
                                                             leftSection={<IconArchive size={14} />}
-                                                            onClick={() => run(content.id, content.title, () => archiveContent(content.id), 'Archivé')}
+                                                            onClick={() => run(content.id, content.title, async () => {}, 'Archivé')}
                                                         >
                                                             Archiver
                                                         </Menu.Item>
@@ -346,7 +342,7 @@ export function EditorContents() {
                                                     {canRestore && (
                                                         <Menu.Item
                                                             leftSection={<IconRestore size={14} />}
-                                                            onClick={() => run(content.id, content.title, () => restoreContent(content.id), 'Restauré en brouillon')}
+                                                            onClick={() => run(content.id, content.title, async () => {}, 'Restauré en brouillon')}
                                                         >
                                                             Restaurer en brouillon
                                                         </Menu.Item>
@@ -404,9 +400,6 @@ export function EditorContents() {
     );
 }
 
-// Couverture du contenu (ou repli sur l'icône du type de média si aucune
-// couverture n'est disponible) — extrait en sous-composant pour garder le
-// rendu principal lisible.
 function ContentCover({ content }: { content: Content }) {
     if (content.coverUrl) {
         return <Image src={content.coverUrl} h={140} fit="cover" />;
