@@ -11,10 +11,10 @@ import { useAuthStore } from '@/stores/auth.store';
 import { ROLE_PERMISSIONS, TEAM_ROLE_LABELS, TeamRole } from '@/models';
 
 const ROLE_OPTIONS: { value: TeamRole; label: string }[] = [
-    { value: 'journalist', label: TEAM_ROLE_LABELS.journalist },
-    { value: 'editor_in_chief', label: TEAM_ROLE_LABELS.editor_in_chief },
-    { value: 'media_admin', label: TEAM_ROLE_LABELS.media_admin },
-    { value: 'finance', label: TEAM_ROLE_LABELS.finance },
+    { value: 'editor', label: TEAM_ROLE_LABELS.editor },
+    { value: 'agency_editor', label: TEAM_ROLE_LABELS.agency_editor },
+    { value: 'agency_admin', label: TEAM_ROLE_LABELS.agency_admin },
+    { value: 'agency_validator', label: TEAM_ROLE_LABELS.agency_validator },
 ];
 
 const STATUS_BADGE: Record<string, { label: string; color: string }> = {
@@ -33,7 +33,7 @@ export function EditorTeam() {
 
     const [inviteOpen, setInviteOpen] = useState(false);
     const [email, setEmail] = useState('');
-    const [role, setRole] = useState<TeamRole>('journalist');
+    const [role, setRole] = useState<TeamRole>('editor');
 
     useEffect(() => {
         fetchMembers();
@@ -45,7 +45,7 @@ export function EditorTeam() {
             notifications.show({ title: 'Invitation envoyée', message: email, color: 'forest' });
             setInviteOpen(false);
             setEmail('');
-            setRole('journalist');
+            setRole('editor');
         } catch (e: any) {
             notifications.show({ title: 'Invitation impossible', message: e.message, color: 'red' });
         }
@@ -120,7 +120,7 @@ export function EditorTeam() {
                                         </Group>
                                     </Table.Td>
                                     <Table.Td>
-                                        {member.role === 'owner' ? (
+                                        {member.role === 'admin' ? (
                                             <Badge variant="light" color="gold">Propriétaire</Badge>
                                         ) : (
                                             <Select
@@ -134,7 +134,7 @@ export function EditorTeam() {
                                         <Badge variant="light" color={badge.color}>{badge.label}</Badge>
                                     </Table.Td>
                                     <Table.Td>
-                                        {!isSelf && member.role !== 'owner' && (
+                                        {!isSelf && member.role !== 'admin' && (
                                             <Menu position="bottom-end" withArrow>
                                                 <Menu.Target>
                                                     <ActionIcon variant="subtle" color="gray"><IconDots size={16} /></ActionIcon>

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { contentApi } from '@/api/content.api';
+import { contentApi } from '@/api/content.api.js';
 import { Content, Category } from '@/models';
 
 interface ContentState {

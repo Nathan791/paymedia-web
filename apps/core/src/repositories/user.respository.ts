@@ -1,6 +1,6 @@
 // src/repositories/user.repository.ts
 import { prisma } from '@paymedia/database';
-import { RegisterInput } from '@paymedia/schemas';
+import type { RegisterInput } from '@paymedia/schemas';
 import { ulid } from 'ulid';
 
 export class UserRepository {
@@ -9,10 +9,10 @@ export class UserRepository {
             where: {
                 OR: [
                     { email: identifier },
-                    { phoneNumber: identifier }
+                    { whatsappPhone: identifier },
                 ],
-                deletedAt: null
-            }
+                deletedAt: null,
+            },
         });
     }
 
@@ -21,20 +21,20 @@ export class UserRepository {
             data: {
                 ulid: ulid(),
                 username: data.username,
-                email: data.email,
-                phoneNumber: data.phoneNumber,
-                passwordHash: passwordHash,
+                email: data.email ?? null,
+                whatsappPhone: data.phoneNumber ?? null,
+                passwordHash,
                 countryCode: data.countryCode,
                 role: 'reader',
-                isVerified: false
-            }
+                isVerified: false,
+            },
         });
     }
 
-    async updateLastLogin(userId: string) {
+    async updateLastLogin(userId: number) {
         return prisma.user.update({
             where: { id: userId },
-            data: { lastLoginAt: new Date() }
+            data: { lastLoginAt: new Date() },
         });
     }
 }

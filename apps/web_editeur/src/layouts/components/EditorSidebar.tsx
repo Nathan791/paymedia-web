@@ -90,7 +90,7 @@ function SidebarLink({ to, label, icon: Icon }: { to: string; label: string; ico
 
 export function EditorSidebar() {
     const user = useAuthStore((s) => s.user);
-    const permissions = ROLE_PERMISSIONS[user?.role ?? 'journalist'];
+    const permissions = ROLE_PERMISSIONS[user?.role ?? 'editor'];
     const navigate = useNavigate();
     const visibleNavItems = NAV_ITEMS.filter((item) => !item.requires || permissions[item.requires]);
     const visibleFooterItems = FOOTER_ITEMS.filter((item) => !item.requires || permissions[item.requires]);

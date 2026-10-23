@@ -1,4 +1,4 @@
-import { ContentWithStats } from './content.model';
+import { ContentWithStats } from './content.model.js';
 
 export interface Analytics {
     date: string;

@@ -1,5 +1,5 @@
 // src/api/payout.api.ts
-import { catalogClient } from './client';  // ← Changé de apiClient à catalogClient
+import { catalogClient } from './client.js';  // ← Changé de apiClient à catalogClient
 import { Payout, PayoutStats } from '@/models';
 
 export const payoutApi = {

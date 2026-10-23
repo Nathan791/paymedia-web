@@ -1,6 +1,6 @@
 // src/stores/transaction.store.ts
 import { create } from 'zustand';
-import { transactionApi } from '@/api/transaction.api';
+import { transactionApi } from '@/api/transaction.api.js';
 import { Transaction, TransactionStats } from '@/models';
 
 // Définition du type de l'état

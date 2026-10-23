@@ -1,4 +1,4 @@
-import mockClient from './mockClient';
+import mockClient from './mockClient.js';
 
 export const commissionApi = {
     getAll: () => mockClient.get('/commissions'),

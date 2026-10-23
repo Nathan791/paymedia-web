@@ -215,3 +215,31 @@ export interface CommissionDetail {
         totalPending: number;
     };
 }
+// ============================================================
+// AUDIT TYPES
+// ============================================================
+
+export type AuditAction =
+    | 'login'
+    | 'logout'
+    | 'block_user'
+    | 'unblock_user'
+    | 'update_role'
+    | 'approve_content'
+    | 'block_content'
+    | 'unblock_content'
+    | 'archive_content'
+    | 'update_commission'
+    | 'update_settings';
+
+export interface AuditLog {
+    id: number;
+    timestamp: string;
+    adminId?: number;
+    adminName: string;
+    action: AuditAction | string;
+    target: string;
+    targetId?: number;
+    details: string;
+    ipAddress: string;
+}

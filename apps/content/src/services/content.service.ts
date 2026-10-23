@@ -1,3 +1,4 @@
+// apps/core/src/services/content.service.ts
 import * as contentRepository from '../repositories/content.repository'
 import type { ContentCreate, ContentUpdate, ContentFilter } from '@paymedia/schemas'
 
@@ -18,17 +19,21 @@ export async function createContent(userId: number, data: ContentCreate, fileUrl
 export async function updateContent(ulid: string, userId: number, data: ContentUpdate) {
     const content = await contentRepository.findByUlid(ulid)
     if (!content) throw new Error('NOT_FOUND')
-    // seul l'auteur ou un admin peut modifier
-    if (content.author.ulid !== undefined) {
-        const author = content as any
-        if (author.userId !== userId) throw new Error('FORBIDDEN')
+
+    if (content.userId !== userId) {
+        throw new Error('FORBIDDEN')
     }
+
     return contentRepository.update(ulid, data)
 }
 
 export async function deleteContent(ulid: string, userId: number) {
-    const content = await contentRepository.findByUlid(ulid) as any
+    const content = await contentRepository.findByUlid(ulid)
     if (!content) throw new Error('NOT_FOUND')
-    if (content.userId !== userId) throw new Error('FORBIDDEN')
+
+    if (content.userId !== userId) {
+        throw new Error('FORBIDDEN')
+    }
+
     return contentRepository.softDelete(ulid)
 }

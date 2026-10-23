@@ -1,32 +1,32 @@
-import { prisma, Prisma } from '@paymedia/database'
-import { generateId, generateSlug } from '@paymedia/utils'
+// apps/core/src/repositories/content.repository.ts
+import { prisma, MediaType, PubStatus } from '@paymedia/database'
+import { generateId } from '@paymedia/utils'
 
 export interface ContentFilters {
     page: number
     limit: number
-    category_id?: number
-    media_type?: 'epub' | 'audio' | 'video'
+    categoryId?: number
+    mediaType?: MediaType
 }
 
 export interface ContentCreate {
-    category_id: number
+    categoryId?: number
     title: string
-    description: string
-    media_type: 'epub' | 'audio' | 'video'
+    description?: string
+    mediaType: MediaType
     price?: number
-    is_premium?: boolean
+    isPremium?: boolean
 }
 
 export interface ContentUpdate {
-    category_id?: number
+    categoryId?: number
     title?: string
     description?: string
-    media_type?: 'epub' | 'audio' | 'video'
+    mediaType?: MediaType
     price?: number
-    is_premium?: boolean
+    isPremium?: boolean
+    status?: PubStatus
 }
-
-const PUBLISHED_STATUS = 'published' as const
 
 /**
  * Liste les contenus publiés et non supprimés.
@@ -37,17 +37,17 @@ export async function findAll(filters: ContentFilters) {
 
     const where = {
         deletedAt: null,
-        status: PUBLISHED_STATUS,
-        ...(filters.category_id !== undefined && {
-            categoryId: filters.category_id,
+        status: PubStatus.published,
+        ...(filters.categoryId !== undefined && {
+            categoryId: filters.categoryId,
         }),
-        ...(filters.media_type !== undefined && {
-            mediaType: filters.media_type,
+        ...(filters.mediaType !== undefined && {
+            mediaType: filters.mediaType,
         }),
     }
 
     const [items, total] = await Promise.all([
-        prisma.pm_content.findMany({
+        prisma.contenu.findMany({
             where,
             orderBy: {
                 createdAt: 'desc',
@@ -56,7 +56,7 @@ export async function findAll(filters: ContentFilters) {
             take: limit,
         }),
 
-        prisma.pm_content.count({ where }),
+        prisma.contenu.count({ where }),
     ])
 
     return {
@@ -71,7 +71,7 @@ export async function findAll(filters: ContentFilters) {
  * Recherche un contenu par ULID sans inclure les contenus supprimés.
  */
 export async function findByUlid(ulid: string) {
-    return prisma.pm_content.findFirst({
+    return prisma.contenu.findFirst({
         where: {
             ulid,
             deletedAt: null,
@@ -80,49 +80,26 @@ export async function findByUlid(ulid: string) {
 }
 
 /**
- * Alias conservé pour les appels existants du service.
- */
-export async function findByUlidWithAuthor(ulid: string) {
-    // Le schéma Prisma actuel ne déclare pas de relation author.
-    return findByUlid(ulid)
-}
-
-/**
- * Crée un contenu et enregistre son fichier principal.
+ * Crée un contenu.
  */
 export async function create(
     userId: number,
     data: ContentCreate,
     fileUrl: string,
 ) {
-    const slug = generateSlug(data.title)
-
-    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        const content = await tx.pm_content.create({
-            data: {
-                ulid: generateId(),
-                userId,
-                categoryId: data.category_id,
-                title: data.title,
-                slug,
-                description: data.description,
-                mediaType: data.media_type,
-                isPremium: data.is_premium ?? true,
-                price: data.price ?? 0,
-                status: 'draft',
-            },
-        })
-
-        await tx.pm_content_file.create({
-            data: {
-                ulid: generateId(),
-                content_id: content.id,
-                file_type: 'main',
-                file_url: fileUrl,
-            },
-        })
-
-        return content
+    return prisma.contenu.create({
+        data: {
+            ulid: generateId(),
+            userId,
+            categoryId: data.categoryId,
+            title: data.title,
+            description: data.description,
+            mediaType: data.mediaType,
+            fileUrl,
+            isPremium: data.isPremium ?? false,
+            price: data.price ?? 0,
+            status: PubStatus.draft,
+        },
     })
 }
 
@@ -139,34 +116,37 @@ export async function update(
         throw new Error('NOT_FOUND')
     }
 
-    return prisma.pm_content.update({
+    return prisma.contenu.update({
         where: {
             ulid,
         },
         data: {
-            ...(data.category_id !== undefined && {
-                categoryId: data.category_id,
+            ...(data.categoryId !== undefined && {
+                categoryId: data.categoryId,
             }),
 
             ...(data.title !== undefined && {
                 title: data.title,
-                slug: generateSlug(data.title),
             }),
 
             ...(data.description !== undefined && {
                 description: data.description,
             }),
 
-            ...(data.media_type !== undefined && {
-                mediaType: data.media_type,
+            ...(data.mediaType !== undefined && {
+                mediaType: data.mediaType,
             }),
 
             ...(data.price !== undefined && {
                 price: data.price,
             }),
 
-            ...(data.is_premium !== undefined && {
-                isPremium: data.is_premium,
+            ...(data.isPremium !== undefined && {
+                isPremium: data.isPremium,
+            }),
+
+            ...(data.status !== undefined && {
+                status: data.status,
             }),
         },
     })
@@ -182,7 +162,7 @@ export async function softDelete(ulid: string) {
         throw new Error('NOT_FOUND')
     }
 
-    return prisma.pm_content.update({
+    return prisma.contenu.update({
         where: {
             ulid,
         },

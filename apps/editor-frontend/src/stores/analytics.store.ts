@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { analyticsApi } from '@/api/analytics.api';
+import { analyticsApi } from '@/api/analytics.api.js';
 import { DashboardStats, Analytics } from '@/models';
 
 // Définition du type de l'état

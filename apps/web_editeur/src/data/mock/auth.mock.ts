@@ -6,7 +6,7 @@ export const MOCK_EDITOR: EditorProfile = {
     ulid: '01KZBF3NXJ5DNQ1KRGVZYFTH0E',
     username: 'neymar',
     email: 'ney@paymedia.com',
-    role: 'journalist',
+    role: 'editor',
     displayName: 'Neymar Ngoma',
     organization: 'Le Quotidien du Littoral',
     memberSince: '2025-02-14T00:00:00.000Z',

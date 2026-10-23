@@ -13,6 +13,6 @@ export async function findBySlug(slug: string) {
     return prisma.category.findUnique({ where: { slug } })
 }
 
-export async function create(data: { name: string; slug: string }) {
+export async function create(data: { name: string; slug: string; description: string }) {
     return prisma.category.create({ data: { ulid: generateId(), ...data } })
 }

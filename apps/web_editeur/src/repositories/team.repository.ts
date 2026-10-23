@@ -5,8 +5,7 @@
 // claire plutôt que de créer un doublon silencieux.
 import { MOCK_TEAM_MEMBERS } from '@/data/mock';
 import { delay, generateId } from './_utils';
-
-export type TeamRole = 'journalist' | 'editor_in_chief' | 'media_admin' | 'finance' | string;
+import { isTeamRole, type TeamRole } from '@/models/auth.model';
 
 export interface TeamMember {
     id: string;
@@ -17,19 +16,43 @@ export interface TeamMember {
     joinedAt: string;
 }
 
-let teamDb: TeamMember[] = MOCK_TEAM_MEMBERS.map((m) => ({ ...m }));
+// Anciens rôles des données mock -> rôles actuels
+const LEGACY_ROLE_MAP: Record<string, TeamRole> = {
+    owner: 'admin',
+    media_admin: 'admin',
+    editor_in_chief: 'agency_validator',
+    journalist: 'editor',
+    finance: 'agency_editor',
+};
+
+/** Convertit une chaîne (API ou mock) en TeamRole valide. */
+function toTeamRole(value: string): TeamRole {
+    if (isTeamRole(value)) return value;
+    return LEGACY_ROLE_MAP[value] ?? 'editor'; // repli : le moins de permissions
+}
+
+let teamDb: TeamMember[] = MOCK_TEAM_MEMBERS.map((m) => ({
+    ...m,
+    role: toTeamRole(m.role),
+}));
 
 export const teamRepository = {
     async list(): Promise<TeamMember[]> {
         await delay(null);
-        return [...teamDb].sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime());
+        return [...teamDb].sort(
+            (a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime()
+        );
     },
 
     async invite(email: string, role: TeamRole): Promise<TeamMember> {
         await delay(null, 500);
         const existing = teamDb.find((m) => m.email.toLowerCase() === email.toLowerCase());
         if (existing) {
-            throw new Error(`${email} fait déjà partie de l'équipe (${existing.status === 'invited' ? 'invitation en attente' : existing.status}).`);
+            throw new Error(
+                `${email} fait déjà partie de l'équipe (${
+                    existing.status === 'invited' ? 'invitation en attente' : existing.status
+                }).`
+            );
         }
         const member: TeamMember = {
             id: generateId('usr'),

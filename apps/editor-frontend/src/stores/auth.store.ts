@@ -1,8 +1,8 @@
 // src/stores/auth.store.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authApi } from '@/api/auth.api';
-import { User } from '@/models';
+import { authApi } from '@/api/auth.api.js';
+import type { User, RegisterInput } from '@/models/user.model.js';
 
 interface AuthState {
     user: User | null;
@@ -12,7 +12,7 @@ interface AuthState {
     isAuthenticated: boolean;
 
     login: (email: string, password: string) => Promise<void>;
-    register: (data: any) => Promise<void>;
+    register: (data: RegisterInput) => Promise<void>;
     logout: () => Promise<void>;
     getProfile: () => Promise<void>;
     clearError: () => void;
@@ -27,60 +27,79 @@ const initialState = {
     isAuthenticated: false,
 };
 
+/** Normalise l'utilisateur de l'API vers le modèle du frontend. */
+function toUser(u: User): User {
+    const role = u.role ?? 'reader';
+    return {
+        ...u, // spread d'abord, pour ne pas écraser les champs normalisés
+        id: u.id ?? 0,
+        ulid: u.ulid ?? '',
+        username: u.username ?? '',
+        email: u.email ?? '',
+        role,
+        roles: [role],
+    };
+}
+
+function clearStoredSession() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_ulid');
+    localStorage.removeItem('auth-storage');
+}
+
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set, _get) => ({
+        (set, get) => ({
             ...initialState,
 
-            login: async (email: string, password: string) => {
+            login: async (email, password) => {
                 set({ isLoading: true, error: null });
                 try {
-                    // Passage d'un deuxième argument vide si nécessaire, ou appel direct selon la signature
-                    const response = await authApi.login({
-                        email,
-                        password,
-                    });
+                    const data = await authApi.login(email, password);
 
-                    const userData = response.user;
-                    const accessToken = (response as any).accessToken || (response as any).access_token;
-
-                    if (!userData || !accessToken) {
-                        console.error('login - Données manquantes:', { userData, accessToken });
+                    if (!data?.user || !data?.access_token) {
                         throw new Error('Données de connexion invalides');
                     }
 
-                    const userId = userData.id ?? 0;
-                    const userUlid = userData.ulid ?? '';
+                    // AuthUser (auth.storage) -> User (modèle du store)
+                    const user = toUser(data.user as unknown as User);
 
-                    localStorage.setItem('access_token', accessToken);
-                    localStorage.setItem('user_id', String(userId));
-                    if (userUlid) {
-                        localStorage.setItem('user_ulid', userUlid);
-                    }
-
-                    // Normalisation de l'objet User pour correspondre au modèle global
-                    const user: User = {
-                        id: userId,
-                        ulid: userUlid,
-                        username: userData.username ?? '',
-                        email: userData.email ?? '',
-                        role: userData.role ?? 'reader',
-                        roles: [(userData as any).role ?? 'reader'],
-                        ...(userData as any),
-                    };
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('user_id', String(user.id));
+                    if (user.ulid) localStorage.setItem('user_ulid', user.ulid);
 
                     set({
-                        user: user,
-                        token: accessToken,
+                        user,
+                        token: data.access_token,
                         isAuthenticated: true,
                         isLoading: false,
                     });
-
-                    console.log('login - Terminé avec succès');
                 } catch (error: any) {
-                    console.error('login error:', error);
                     set({
-                        error: error.response?.data?.message || 'Erreur de connexion',
+                        error:
+                            error.response?.data?.message ||
+                            error.message ||
+                            'Erreur de connexion',
+                        isLoading: false,
+                        isAuthenticated: false,
+                    });
+                    throw error;
+                }
+            },
+
+            register: async (data) => {
+                set({ isLoading: true, error: null });
+                try {
+                    // Pas de token à l'inscription : on se connecte ensuite.
+                    await authApi.register(data);
+                    await get().login(data.email, data.password);
+                } catch (error: any) {
+                    set({
+                        error:
+                            error.response?.data?.message ||
+                            error.message ||
+                            "Erreur d'inscription",
                         isLoading: false,
                         isAuthenticated: false,
                     });
@@ -89,100 +108,23 @@ export const useAuthStore = create<AuthState>()(
             },
 
             logout: async () => {
-                console.log('Store - Logout - Début');
-                set({ isLoading: true });
-                try {
-                    // Passage de 2 arguments (ex: objet vide et undefined) pour satisfaire TS2554
-                    await (authApi as any).logout({}, undefined);
-                } catch (error) {
-                    console.warn('⚠️ Logout API error (ignoré):', error);
-                } finally {
-                    localStorage.removeItem('access_token');
-                    localStorage.removeItem('user_id');
-                    localStorage.removeItem('auth-storage');
-                    sessionStorage.clear();
-
-                    set({
-                        user: null,
-                        token: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                        error: null,
-                    });
-
-                    console.log('Store - Logout - Terminé');
-                    window.location.href = '/login';
-                }
-            },
-
-            register: async (data: any) => {
-                set({ isLoading: true, error: null });
-                try {
-                    // Passage de 2 arguments pour éviter l'erreur TS2554 sur register si requis
-                    const response = await (authApi as any).register(data, undefined);
-
-                    const accessToken = (response as any).accessToken || (response as any).access_token;
-                    const userData = response.user;
-
-                    if (accessToken) {
-                        localStorage.setItem('access_token', accessToken);
-                    }
-                    if (userData) {
-                        const userId = userData.ulid || userData.id;
-                        localStorage.setItem('user_id', String(userId));
-                    }
-
-                    const user: User | null = userData ? {
-                        id: userData.id ?? 0,
-                        ulid: userData.ulid ?? '',
-                        username: userData.username ?? '',
-                        email: userData.email ?? '',
-                        role: userData.role ?? 'reader',
-                        roles: [(userData as any).role ?? 'reader'],
-                        ...userData,
-                    } : null;
-
-                    set({
-                        user: user,
-                        token: accessToken,
-                        isAuthenticated: true,
-                        isLoading: false,
-                    });
-                } catch (error: any) {
-                    console.error('Register error:', error);
-                    set({
-                        error: error.response?.data?.message || "Erreur d'inscription",
-                        isLoading: false,
-                        isAuthenticated: false,
-                    });
-                    throw error;
-                }
+                // Réinitialiser d'abord : authApi.logout() redirige vers /login
+                clearStoredSession();
+                sessionStorage.clear();
+                set({ ...initialState });
+                authApi.logout();
             },
 
             getProfile: async () => {
-                set({ isLoading: true, error: null });
-                try {
-                    set({ isLoading: false });
-                } catch (error: any) {
-                    console.error('GetProfile error:', error);
-                    set({
-                        error: error.response?.data?.message || 'Erreur de chargement du profil',
-                        isLoading: false,
-                        isAuthenticated: false,
-                    });
-                    throw error;
-                }
+                // À brancher sur un endpoint /me quand il existera côté API.
+                set({ isLoading: false, error: null });
             },
 
-            clearError: () => {
-                set({ error: null });
-            },
+            clearError: () => set({ error: null }),
 
             reset: () => {
-                set(initialState);
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('user_id');
-                localStorage.removeItem('auth-storage');
+                set({ ...initialState });
+                clearStoredSession();
             },
         }),
         {

@@ -1,118 +1,146 @@
-import jwt from 'jsonwebtoken'
-import { FastifyRequest, FastifyReply } from 'fastify'
+// packages/auth/src/index.ts
+import bcrypt from 'bcryptjs';
+import { SignJWT, jwtVerify, errors } from 'jose';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 
 // ============================================================
-// 1. INTERFACES
+// 1. TYPES
 // ============================================================
+
+export interface AccessTokenPayload {
+    sub: string;
+    userId: number;
+    email: string;
+    roles: string[];
+}
 
 export interface AuthOptions {
-    jwtSecret: string
+    jwtSecret: string;
 }
 
 export interface AuthUser {
-    id: string
-    username: string
-    email: string
-    role: 'admin' | 'editor' | 'reader'
+    id: string;
+    username: string;
+    email: string;
+    role: 'admin' | 'editor' | 'reader';
 }
 
 // ============================================================
-// 2. FONCTION PRINCIPALE : buildAuthMiddleware
+// 2. MOTS DE PASSE
 // ============================================================
 
-export function buildAuthMiddleware(options: AuthOptions) {
-    const { jwtSecret } = options
+export const hashPassword = (password: string): Promise<string> =>
+    bcrypt.hash(password, 10);
 
-    /**
-     * Middleware d'authentification Fastify
-     * @param request - La requête Fastify
-     * @param reply - La réponse Fastify
-     * @param next - Fonction next pour continuer
-     */
-    return async function authMiddleware(
-        request: FastifyRequest,
-        reply: FastifyReply,
-        next: (err?: any) => void
-    ) {
-        try {
-            // 1. Récupérer le header Authorization
-            const authHeader = request.headers.authorization
+export const comparePassword = (plain: string, hash: string): Promise<boolean> =>
+    bcrypt.compare(plain, hash);
 
-            if (!authHeader) {
-                return reply.status(401).send({
-                    code: 'UNAUTHORIZED',
-                    message: 'Token manquant',
-                    timestamp: new Date().toISOString()
-                })
-            }
+// ============================================================
+// 3. JWT (jose)
+// ============================================================
 
-            // 2. Extraire le token
-            const token = authHeader.replace('Bearer ', '')
+const encodeSecret = (secret: string) => new TextEncoder().encode(secret);
 
-            // 3. Vérifier le token JWT
-            const decoded = jwt.verify(token, jwtSecret) as any
+/** ttl : nombre de secondes (ex: 604800) ou durée jose (ex: '7d'). */
+export async function signAccessToken(
+    payload: AccessTokenPayload,
+    secret: string,
+    ttl: number | string
+): Promise<string> {
+    return new SignJWT({ ...payload })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setSubject(payload.sub)
+        .setIssuedAt()
+        .setExpirationTime(typeof ttl === 'number' ? `${ttl}s` : ttl)
+        .sign(encodeSecret(secret));
+}
 
-                // 4. Ajouter l'utilisateur à la requête
-            ;(request as any).user = {
-                id: decoded.id || decoded.sub,
-                username: decoded.username || decoded.name,
-                email: decoded.email,
-                role: decoded.role || 'reader'
-            }
-
-            // 5. Continuer
-            next()
-        } catch (error: any) {
-            // Si le token est invalide
-            if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-                return reply.status(401).send({
-                    code: 'UNAUTHORIZED',
-                    message: error.name === 'TokenExpiredError'
-                        ? 'Token expiré'
-                        : 'Token invalide',
-                    timestamp: new Date().toISOString()
-                })
-            }
-
-            // Erreur inconnue
-            return reply.status(500).send({
-                code: 'AUTH_ERROR',
-                message: 'Erreur lors de l\'authentification',
-                timestamp: new Date().toISOString()
-            })
-        }
+/** Retourne le payload, ou null si le token est invalide/expiré. */
+export async function verifyAccessToken(
+    token: string,
+    secret: string
+): Promise<AccessTokenPayload | null> {
+    try {
+        const { payload } = await jwtVerify(token, encodeSecret(secret));
+        return payload as unknown as AccessTokenPayload;
+    } catch {
+        return null;
     }
 }
 
-// ============================================================
-// 3. EXPORT PAR DÉFAUT
-// ============================================================
+/** Alias de compatibilité avec l'ancien code (jsonwebtoken). */
+export const verifyToken = verifyAccessToken;
 
-export default buildAuthMiddleware
-
-// ============================================================
-// 4. EXPORT DES FONCTIONS UTILITAIRES
-// ============================================================
-
-// Fonction pour créer un token JWT
-export function generateToken(payload: any, secret: string, expiresIn: string = '7d') {
-    // @ts-ignore
-    return jwt.sign(payload, secret, { expiresIn })
+/** Génère un token avec un payload libre (par défaut 7 jours). */
+export async function generateToken(
+    payload: Record<string, unknown>,
+    secret: string,
+    expiresIn: number | string = '7d'
+): Promise<string> {
+    return new SignJWT(payload)
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime(typeof expiresIn === 'number' ? `${expiresIn}s` : expiresIn)
+        .sign(encodeSecret(secret));
 }
 
-// Fonction pour vérifier un token
-export function verifyToken(token: string, secret: string) {
-    return jwt.verify(token, secret)
+// ============================================================
+// 4. MIDDLEWARE FASTIFY
+// ============================================================
+
+export function buildAuthMiddleware({ jwtSecret }: AuthOptions) {
+    const key = encodeSecret(jwtSecret);
+
+    // Handler async : pas de callback `next` (Fastify refuse de mélanger les deux).
+    return async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
+        const authHeader = request.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return reply.status(401).send({
+                code: 'UNAUTHORIZED',
+                message: 'Token manquant',
+                timestamp: new Date().toISOString(),
+            });
+        }
+
+        const token = authHeader.slice(7).trim();
+
+        try {
+            const { payload } = await jwtVerify(token, key);
+
+            // Les tokens de signAccessToken ont `roles: string[]`,
+            // les anciens tokens avaient `role: string`.
+            const roles = Array.isArray(payload.roles) ? (payload.roles as string[]) : [];
+            const role = (payload.role as string) ?? roles[0] ?? 'reader';
+
+            (request as any).user = {
+                id: String(payload.userId ?? payload.id ?? payload.sub),
+                username: (payload.username as string) ?? (payload.name as string) ?? '',
+                email: (payload.email as string) ?? '',
+                role: role as AuthUser['role'],
+            } satisfies AuthUser;
+        } catch (error) {
+            if (error instanceof errors.JWTExpired) {
+                return reply.status(401).send({
+                    code: 'UNAUTHORIZED',
+                    message: 'Token expiré',
+                    timestamp: new Date().toISOString(),
+                });
+            }
+            if (error instanceof errors.JOSEError) {
+                return reply.status(401).send({
+                    code: 'UNAUTHORIZED',
+                    message: 'Token invalide',
+                    timestamp: new Date().toISOString(),
+                });
+            }
+            return reply.status(500).send({
+                code: 'AUTH_ERROR',
+                message: "Erreur lors de l'authentification",
+                timestamp: new Date().toISOString(),
+            });
+        }
+    };
 }
 
-// Fonction pour hacher un mot de passe (simple)
-export async function hashPassword(password: string): Promise<string> {
-    const bcrypt = await import('bcryptjs')
-    return bcrypt.hash(password, 10)
-}
-
-// Fonction pour comparer un mot de passe
-export async function comparePassword(password: string, hash: string): Promise<boolean> {
-    const bcrypt = await import('bcryptjs')
-    return bcrypt.compare(password, hash)
-}
+export default buildAuthMiddleware;

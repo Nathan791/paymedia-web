@@ -16,5 +16,10 @@ export async function createCategory(data: CategoryCreate) {
     const slug = data.slug ?? generateSlug(data.name)
     const existing = await categoryRepository.findBySlug(slug)
     if (existing) throw new Error('SLUG_TAKEN')
-    return categoryRepository.create({ name: data.name, slug })
+
+    return categoryRepository.create({
+        name: data.name,
+        slug,
+        description: data.description, // Ajout de la description requise
+    })
 }

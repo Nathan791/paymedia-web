@@ -41,16 +41,16 @@ const SESSION_KEY = 'web_editeur.session';
 function normalizeRole(role: string): TeamRole {
 
     const roles: TeamRole[] = [
-        'owner',
-        'media_admin',
-        'editor_in_chief',
-        'journalist',
-        'finance',
+         'editor',
+        'agency_editor',
+        'agency_admin',
+        'agency_validator',
+        'admin'
     ];
 
     return roles.includes(role as TeamRole)
         ? role as TeamRole
-        : 'journalist';
+        : 'editor';
 }
 
 function mapUserToProfile(

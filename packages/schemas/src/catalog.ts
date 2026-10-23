@@ -46,3 +46,14 @@ export const PreferenceParamSchema = z.object({
 })
 
 export type PreferenceParam = z.infer<typeof PreferenceParamSchema>
+
+
+export const PublicationSchema = z.object({
+    title: z.string().min(1).max(255),
+    description: z.string().nullish(),
+    contentType: z.enum(['epub', 'audio', 'video']),
+    mediaUrl: z.string().min(1).max(512),
+    thumbnailUrl: z.string().max(512).nullish(),
+    isPremium: z.boolean().default(false),
+    price: z.coerce.number().min(0).default(0),
+});

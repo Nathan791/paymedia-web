@@ -36,7 +36,7 @@ export function EditorContentDetail() {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
     const user = useAuthStore((s) => s.user);
-    const permissions = ROLE_PERMISSIONS[user?.role ?? 'journalist'];
+    const permissions = ROLE_PERMISSIONS[user?.role ?? 'editor'];
 
     const {
         currentContent, fetchContents, isLoading, error, clearError,

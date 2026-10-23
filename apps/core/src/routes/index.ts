@@ -8,4 +8,6 @@ export default async function rootRoutes(fastify: FastifyInstance) {
     await fastify.register(authRoutes, { prefix: '/auth' })
 
     // Vous pouvez enregistrer les autres routes ici (ex: /users, /otp, etc.)
+    await fastify.register(userRoutes, { prefix: '/user' })
+
 }

@@ -1,89 +1,55 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+// src/components/layout/EditorSidebar.tsx
+import { NavLink } from 'react-router-dom';
 import {
+    Avatar,
+    Badge,
     Box,
+    Group,
+    ScrollArea,
     Stack,
     Text,
-    Group,
-    Avatar,
     UnstyledButton,
-    Badge,
-    ScrollArea,
 } from '@mantine/core';
 import {
-    IconLayoutDashboard,
-    IconFileText,
-    IconQrcode,
-    IconShoppingCart,
-    IconReceipt,
-    IconUser,
-    IconLogout,
     IconBrandGoogleAnalytics,
+    IconFileText,
+    IconLayoutDashboard,
+    IconLogout,
+    IconQrcode,
+    IconReceipt,
+    IconShoppingCart,
+    IconUser,
 } from '@tabler/icons-react';
-import { useAuthStore } from '@/stores';
+import { useAuthStore } from '@/stores/auth.store';
+import { TEAM_ROLE_LABELS, isTeamRole } from '@/models/user.model';
 
 const menuItems = [
-    {
-        label: 'Dashboard',
-        icon: IconLayoutDashboard,
-        path: '/editor/dashboard',
-        badge: null,
-    },
-    {
-        label: 'Contenus',
-        icon: IconFileText,
-        path: '/editor/contents',
-        badge: null,
-    },
-    {
-        label: 'Triggers',
-        icon: IconQrcode,
-        path: '/editor/triggers',
-        badge: null,
-    },
-    {
-        label: 'Ventes',
-        icon: IconShoppingCart,
-        path: '/editor/sales',
-        badge: 'Nouveau',
-    },
-    {
-        label: 'Reversements',
-        icon: IconReceipt,
-        path: '/editor/payouts',
-        badge: null,
-    },
-    {
-        label: 'Analytics',
-        icon: IconBrandGoogleAnalytics,
-        path: '/editor/analytics',
-        badge: null,
-    },
-    {
-        label: 'Profil',
-        icon: IconUser,
-        path: '/editor/profile',
-        badge: null,
-    },
+    { label: 'Dashboard', icon: IconLayoutDashboard, path: '/editor/dashboard', badge: null },
+    { label: 'Contenus', icon: IconFileText, path: '/editor/contents', badge: null },
+    { label: 'Triggers', icon: IconQrcode, path: '/editor/triggers', badge: null },
+    { label: 'Ventes', icon: IconShoppingCart, path: '/editor/sales', badge: 'Nouveau' },
+    { label: 'Reversements', icon: IconReceipt, path: '/editor/payouts', badge: null },
+    { label: 'Analytics', icon: IconBrandGoogleAnalytics, path: '/editor/analytics', badge: null },
+    { label: 'Profil', icon: IconUser, path: '/editor/profile', badge: null },
 ];
 
 export const EditorSidebar = () => {
-    const navigate = useNavigate();
     const { user, logout } = useAuthStore();
 
+    // Libellé du rôle : utilise TEAM_ROLE_LABELS si le rôle est connu, sinon "Éditeur"
+    const roleLabel =
+        user?.role && isTeamRole(user.role) ? TEAM_ROLE_LABELS[user.role] : 'Éditeur';
+
     const handleLogout = async () => {
-        console.log('🔵 Sidebar - Clic sur déconnexion');
         try {
-            await logout();
-
+            await logout(); // vide la session et redirige vers /login
         } catch (error) {
-            console.error('🔴 Sidebar - Erreur de déconnexion:', error);
-
+            console.error('Erreur de déconnexion:', error);
             localStorage.removeItem('access_token');
             localStorage.removeItem('auth-storage');
             window.location.href = '/login';
         }
     };
-
 
     return (
         <Box
@@ -92,71 +58,66 @@ export const EditorSidebar = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 backgroundColor: '#ffffff',
-                borderRight: '1px solid #e9ecef',
+                borderRight: '1px solid var(--mantine-color-gray-3)',
             }}
         >
+            {/* En-tête : utilisateur */}
             <Box
                 p="md"
                 style={{
-                    borderBottom: '1px solid #f1f3f5',
-                    backgroundColor: '#fafbfc',
+                    borderBottom: '1px solid var(--mantine-color-gray-1)',
+                    backgroundColor: 'var(--mantine-color-gray-0)',
                 }}
             >
                 <Group gap="sm" wrap="nowrap">
                     <Avatar
-                        color="#0CAF7A"
+                        color="forest"
                         radius="xl"
                         size="md"
-                        style={{
-                            border: '2px solid #E8F5F0',
-                            fontWeight: 600,
-                            fontSize: 18,
-                        }}
+                        style={{ fontWeight: 600, fontSize: 18 }}
                     >
                         {user?.username?.[0]?.toUpperCase() || 'E'}
                     </Avatar>
-                    <Box style={{ flex: 1, minWidth: 0 }}>
-                        <Group >
-                            <Text size="xs" c="dimmed" lineClamp={1}>
-                                {user?.email || 'editeur@paymedia.com'}
-                            </Text>
-                        </Group>
-                         <Group gap="xs" wrap="nowrap" align="center">
-                            <Badge
-                                color="#0CAF7A"
-                                size="xs"
-                                variant="light"
-                                style={{ textTransform: 'uppercase', letterSpacing: '0.5px', flexShrink: 0 }}
-                            >
-                                Éditeur
-                            </Badge>
-                         </Group>
 
+                    <Box style={{ flex: 1, minWidth: 0 }}>
+                        {user?.email && (
+                            <Text size="xs" c="dimmed" lineClamp={1}>
+                                {user.email}
+                            </Text>
+                        )}
+                        <Badge
+                            color="forest"
+                            size="xs"
+                            variant="light"
+                            mt={4}
+                            style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                        >
+                            {roleLabel}
+                        </Badge>
                     </Box>
                 </Group>
             </Box>
 
             {/* Menu */}
             <ScrollArea style={{ flex: 1 }}>
-                <Stack gap="4" p="md">
+                <Stack gap={4} p="md">
                     {menuItems.map((item) => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            style={{ textDecoration: 'none' }}
-                        >
+                        <NavLink key={item.path} to={item.path} style={{ textDecoration: 'none' }}>
                             {({ isActive }) => (
                                 <UnstyledButton
+                                    component="div"
                                     style={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        gap: '12px',
+                                        gap: 12,
                                         padding: '10px 14px',
-                                        borderRadius: '8px',
-                                        color: isActive ? '#0CAF7A' : '#495057',
+                                        borderRadius: 8,
+                                        color: isActive
+                                            ? 'var(--mantine-color-forest-6)'
+                                            : 'var(--mantine-color-gray-7)',
                                         backgroundColor: isActive
-                                            ? '#E8F5F0'
+                                            ? 'var(--mantine-color-forest-0)'
                                             : 'transparent',
                                         fontWeight: isActive ? 600 : 400,
                                         width: '100%',
@@ -164,7 +125,8 @@ export const EditorSidebar = () => {
                                     }}
                                     onMouseEnter={(e) => {
                                         if (!isActive) {
-                                            e.currentTarget.style.backgroundColor = '#f8f9fa';
+                                            e.currentTarget.style.backgroundColor =
+                                                'var(--mantine-color-gray-0)';
                                         }
                                     }}
                                     onMouseLeave={(e) => {
@@ -179,11 +141,7 @@ export const EditorSidebar = () => {
                                     </Group>
 
                                     {item.badge && (
-                                        <Badge
-                                            size="xs"
-                                            color="#0CAF7A"
-                                            variant="filled"
-                                        >
+                                        <Badge size="xs" color="forest" variant="filled">
                                             {item.badge}
                                         </Badge>
                                     )}
@@ -194,32 +152,32 @@ export const EditorSidebar = () => {
                 </Stack>
             </ScrollArea>
 
-            {/* Pied de page avec déconnexion */}
-            <Box p="md" style={{ borderTop: '1px solid #f1f3f5' }}>
+            {/* Pied de page : déconnexion */}
+            <Box p="md" style={{ borderTop: '1px solid var(--mantine-color-gray-1)' }}>
                 <UnstyledButton
                     onClick={handleLogout}
                     style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px',
+                        gap: 12,
                         padding: '10px 14px',
-                        borderRadius: '8px',
-                        color: '#fa5252',
+                        borderRadius: 8,
+                        color: 'var(--mantine-color-red-6)',
                         width: '100%',
                         transition: 'all 0.2s ease',
                     }}
                     onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#fff5f5';
+                        e.currentTarget.style.backgroundColor = 'var(--mantine-color-red-0)';
                     }}
                     onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                 >
                     <IconLogout size={18} stroke={1.8} />
-                    <Text size="sm" fw={500}>Déconnexion</Text>
+                    <Text size="sm" fw={500}>
+                        Déconnexion
+                    </Text>
                 </UnstyledButton>
-
-
             </Box>
         </Box>
     );

@@ -1,8 +1,8 @@
 import { Outlet } from 'react-router-dom';
 import { AppShell, Box } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { EditorSidebar } from '@/components/editor/sidebar/EditorSidebar';
-import { EditorHeader } from '@/components/editor/header/EditorHeader';
+import { EditorSidebar } from '@/components/editor/sidebar/EditorSidebar.js';
+import { EditorHeader } from '@/components/editor/header/EditorHeader.js';
 
 export const EditorLayout = () => {
     const [opened, { toggle }] = useDisclosure();

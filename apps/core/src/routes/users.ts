@@ -1,31 +1,35 @@
-import { FastifyPluginAsync } from 'fastify'
+// users.ts
+import type { FastifyPluginAsync } from 'fastify'
 
 const userRoutes: FastifyPluginAsync = async (fastify): Promise<void> => {
-    // Ce hook s'applique uniquement aux routes de ce fichier grâce à l'encapsulation par défaut
+    // S'applique uniquement aux routes de ce fichier (encapsulation Fastify)
     fastify.addHook('onRequest', fastify.authenticate)
 
     // Récupérer tous les utilisateurs
-    fastify.get('/', async (request, reply) => {
-        const users = await fastify.db.user.findMany({
-            select: { id: true, ulid: true, username: true, email: true, role: true }
+    fastify.get('/', async () => {
+        return fastify.db.user.findMany({
+            select: { id: true, ulid: true, username: true, email: true, role: true },
         })
-        return users
     })
 
-    // Récupérer le solde du portefeuille d'un utilisateur
-    fastify.get('/:id/wallet', async (request, reply) => {
-        const { id } = request.params as { id: string }
+    // Récupérer le portefeuille d'un utilisateur
+    fastify.get<{ Params: { id: string } }>('/:id/wallet', async (request, reply) => {
+        const userId = Number(request.params.id)
 
-        // Si votre base de données attend un id numérique, convertissez-le : Number(id)
-        const wallet = await fastify.db.userWallet.findUnique({
-            where: { userId: id }
+        if (!Number.isInteger(userId)) {
+            return reply.status(400).send({ error: 'Identifiant invalide' })
+        }
+
+        const user = await fastify.db.user.findUnique({
+            where: { id: userId },
+            select: { wallet: true },
         })
 
-        if (!wallet) {
+        if (!user?.wallet) {
             return reply.status(404).send({ error: 'Portefeuille introuvable' })
         }
 
-        return wallet
+        return user.wallet
     })
 }
 

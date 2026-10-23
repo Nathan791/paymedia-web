@@ -6,7 +6,7 @@ import {
 } from '@mantine/core';
 import { IconQrcode, IconHash, IconWaveSine, IconCopy, IconCheck, IconPlayerPause, IconPlayerPlay } from '@tabler/icons-react';
 import { useTriggerStore } from '@/stores/trigger.store';
-import { TRIGGER_STATUS_COLORS, TRIGGER_TYPE_LABELS, TriggerType } from '@/models';
+import { TRIGGER_STATUS_COLORS, TRIGGER_TYPE_LABELS, TriggerType } from '@/models/trigger.model.ts';
 
 const TYPE_ICON: Record<TriggerType, any> = {
     qr_code: IconQrcode,

@@ -1,7 +1,7 @@
 // src/stores/trigger.store.ts
 import { create } from 'zustand';
 import { triggerService } from '@/services/trigger.service';
-import { Trigger } from '@/repositories/trigger.repository';
+import type { Trigger } from '@/models/trigger.model';
 
 interface TriggerState {
     triggers: Trigger[];
@@ -28,12 +28,13 @@ export const useTriggerStore = create<TriggerState>((set, get) => ({
 
     togglePause: async (trigger) => {
         try {
-            const updated = trigger.status === 'active'
-                ? await triggerService.pause(trigger.id)
-                : await triggerService.activate(trigger.id);
+            const updated =
+                trigger.status === 'active'
+                    ? await triggerService.pause(trigger.id)
+                    : await triggerService.activate(trigger.id);
             set({ triggers: get().triggers.map((t) => (t.id === trigger.id ? updated : t)) });
         } catch (error: any) {
-            set({ error: error.message || "Erreur lors de la mise à jour." });
+            set({ error: error.message || 'Erreur lors de la mise à jour.' });
         }
     },
 }));

@@ -74,7 +74,7 @@ const formatPrice = (content: Content) =>
 export function EditorContents() {
     const navigate = useNavigate();
     const user = useAuthStore((s) => s.user);
-    const permissions = ROLE_PERMISSIONS[user?.role ?? 'journalist'];
+    const permissions = ROLE_PERMISSIONS[user?.role ?? 'editor'];
 
     const {
         contents, isLoading, error,

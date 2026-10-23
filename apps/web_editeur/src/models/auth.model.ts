@@ -1,38 +1,31 @@
 // src/models/auth.model.ts
 //
 // Contrats centraux de l'authentification du Web Éditeur.
-//
-// Ce fichier contient :
-// - les rôles et permissions de l'espace éditeur ;
-// - le profil utilisateur utilisé par l'interface ;
-// - les données des formulaires ;
-// - les contrats correspondant aux réponses de l'API Core Auth ;
-// - les contrats spécifiques à Google OAuth ;
-// - les contrats de récupération du mot de passe.
-//
-// IMPORTANT :
-// Les modèles frontend peuvent être différents des modèles retournés
-// directement par l'API. Le repository se charge de faire la conversion.
-//
+// Les modèles frontend peuvent différer des modèles retournés par l'API ;
+// le repository se charge de la conversion.
 
 // =============================================================================
 // RÔLES DE L'ESPACE ÉDITEUR
 // =============================================================================
 
 export type TeamRole =
-    | 'owner'
-    | 'media_admin'
-    | 'editor_in_chief'
-    | 'journalist'
-    | 'finance';
+    | 'editor'
+    | 'admin'
+    | 'agency_admin'
+    | 'agency_editor'
+    | 'agency_validator';
 
 export const TEAM_ROLE_LABELS: Record<TeamRole, string> = {
-    owner: 'Propriétaire',
-    media_admin: 'Administrateur média',
-    editor_in_chief: 'Rédacteur en chef',
-    journalist: 'Journaliste',
-    finance: 'Finance',
+    admin: 'Administrateur',
+    editor: 'Éditeur',
+    agency_admin: 'Administrateur agence',
+    agency_editor: 'Éditeur agence',
+    agency_validator: 'Validateur agence',
 };
+
+/** Vérifie qu'une chaîne venant de l'API est bien un rôle connu. */
+export const isTeamRole = (value: string): value is TeamRole =>
+    Object.prototype.hasOwnProperty.call(TEAM_ROLE_LABELS, value);
 
 // =============================================================================
 // PERMISSIONS
@@ -50,7 +43,7 @@ export interface RolePermissions {
 }
 
 export const ROLE_PERMISSIONS: Record<TeamRole, RolePermissions> = {
-    owner: {
+    admin: {
         canCreateContent: true,
         canEditOwnContent: true,
         canEditAnyContent: true,
@@ -60,8 +53,7 @@ export const ROLE_PERMISSIONS: Record<TeamRole, RolePermissions> = {
         canViewRevenue: true,
         canManageSettings: true,
     },
-
-    media_admin: {
+    agency_admin: {
         canCreateContent: true,
         canEditOwnContent: true,
         canEditAnyContent: true,
@@ -71,19 +63,7 @@ export const ROLE_PERMISSIONS: Record<TeamRole, RolePermissions> = {
         canViewRevenue: true,
         canManageSettings: true,
     },
-
-    editor_in_chief: {
-        canCreateContent: true,
-        canEditOwnContent: true,
-        canEditAnyContent: true,
-        canReview: true,
-        canPublish: true,
-        canManageTeam: false,
-        canViewRevenue: true,
-        canManageSettings: false,
-    },
-
-    journalist: {
+    editor: {
         canCreateContent: true,
         canEditOwnContent: true,
         canEditAnyContent: false,
@@ -93,15 +73,24 @@ export const ROLE_PERMISSIONS: Record<TeamRole, RolePermissions> = {
         canViewRevenue: false,
         canManageSettings: false,
     },
-
-    finance: {
-        canCreateContent: false,
-        canEditOwnContent: false,
+    agency_editor: {
+        canCreateContent: true,
+        canEditOwnContent: true,
         canEditAnyContent: false,
         canReview: false,
         canPublish: false,
         canManageTeam: false,
-        canViewRevenue: true,
+        canViewRevenue: false,
+        canManageSettings: false,
+    },
+    agency_validator: {
+        canCreateContent: false,
+        canEditOwnContent: false,
+        canEditAnyContent: false,
+        canReview: true,
+        canPublish: true,
+        canManageTeam: false,
+        canViewRevenue: false,
         canManageSettings: false,
     },
 };
@@ -109,7 +98,6 @@ export const ROLE_PERMISSIONS: Record<TeamRole, RolePermissions> = {
 // =============================================================================
 // PROFIL UTILISÉ PAR LE WEB ÉDITEUR
 // =============================================================================
-
 
 export interface EditorProfile {
     id: string;
@@ -126,7 +114,7 @@ export interface EditorProfile {
 }
 
 // =============================================================================
-// FORMULAIRE LOGIN
+// FORMULAIRES
 // =============================================================================
 
 export interface LoginCredentials {
@@ -134,15 +122,7 @@ export interface LoginCredentials {
     password: string;
 }
 
-// =============================================================================
-// FORMULAIRE REGISTER
-// =============================================================================
-//
-// Le frontend utilise actuellement phone/country_code/currency.
-// Le repository convertit ces propriétés vers le contrat backend :
-// whatsappPhone/countryCode.
-// =============================================================================
-
+// Le repository convertit phone/country_code/currency vers whatsappPhone/countryCode.
 export interface RegisterCredentials {
     username: string;
     email: string;
@@ -163,21 +143,10 @@ export interface GoogleAuthInput {
     targetApp: 'web_editor';
 }
 
-
-// -----------------------------------------------------------------------------
-// FORGOT PASSWORD
-// -----------------------------------------------------------------------------
-//
-// Le backend attend simplement l'adresse e-mail du compte.
-// Exemple :
-//
-// POST /api/v1/core/auth/forgot-password
-//
-// Body :
-// {
-//     "email": "utilisateur@gmail.com"
-// }
-// -----------------------------------------------------------------------------
+// =============================================================================
+// MOT DE PASSE OUBLIÉ / RESET
+// =============================================================================
+// POST /api/v1/core/auth/forgot-password  { "email": "..." }
 
 export interface ForgotPasswordInput {
     email: string;
@@ -198,50 +167,9 @@ export interface ResetPasswordResponse {
     message: string;
 }
 
-// -----------------------------------------------------------------------------
-// GOOGLE OAUTH
-// -----------------------------------------------------------------------------
-//
-// D'après le contrat que tu m'as fourni, l'API Google attend :
-//
-// {
-//     "email": "socialuser@gmail.com",
-//     "username": "SocialUser",
-//     "providerId": "google_oauth_123456789",
-//     "targetApp": "web_editor"
-// }
-// -----------------------------------------------------------------------------
-
-export interface GoogleAuthInput {
-    email: string;
-    username: string;
-    providerId: string;
-    targetApp: 'web_editor';
-}
-
-export interface GoogleAuthResponse {
-    success: boolean;
-    data: AuthData;
-    message: string;
-}
-
-
-
-
-// =============================================================================
-// RESET PASSWORD
-// =============================================================================
-
-
-export interface ResetPasswordInput {
-    token: string;
-    newPassword: string;
-}
-
 // =============================================================================
 // SESSION FRONTEND
 // =============================================================================
-
 
 export interface AuthSession {
     user: EditorProfile;

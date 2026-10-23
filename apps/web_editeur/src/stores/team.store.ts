@@ -1,9 +1,9 @@
 // src/stores/team.store.ts
 import { create } from 'zustand';
 import { teamService } from '@/services/team.service';
+import type { TeamRole } from '@/models/auth.model';
 
-export type TeamRole = 'editor' | 'agency_editor' | 'agency_admin'  | (string & {});
-
+export type { TeamRole };
 export interface TeamMember {
     id: string;
     name: string;

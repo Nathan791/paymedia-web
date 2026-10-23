@@ -1,13 +1,13 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { LoginPage } from '@/pages/editor/Login/LoginPage';
-import { RegisterPage } from '@/pages/editor/register/RegisterPage';
-import { EditorLayout } from '@/components/editor/layouts/EditorLayout';
-import { EditorRoute } from '@/routes/EditorRoute';
-import { EditorDashboard } from '@/pages/editor/Dashboard/EditorDashboard';
-import { EditorContents } from '@/pages/editor/Contents/EditorContents';
-import { EditorContentCreate } from '@/pages/editor/Contents/EditorContentCreate';
-import { EditorContentEdit } from '@/pages/editor/Contents/EditorContentEdit';
-import { EditorContentDetail } from '@/pages/editor/Contents/EditorContentDetail'
+import { LoginPage } from '@/pages/editor/Login/LoginPage.js';
+import { RegisterPage } from '@/pages/editor/register/RegisterPage.js';
+import { EditorLayout } from '@/components/editor/layouts/EditorLayout.js';
+import { EditorRoute } from '@/routes/EditorRoute.js';
+import { EditorDashboard } from '@/pages/editor/Dashboard/EditorDashboard.js';
+import { EditorContents } from '@/pages/editor/Contents/EditorContents.js';
+import { EditorContentCreate } from '@/pages/editor/Contents/EditorContentCreate.js';
+import { EditorContentEdit } from '@/pages/editor/Contents/EditorContentEdit.js';
+import { EditorContentDetail } from '@/pages/editor/Contents/EditorContentDetail.js'
 
 export const AppRouter = () => {
     return (

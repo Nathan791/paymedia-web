@@ -1,6 +1,6 @@
 // src/components/FileDropzone.tsx
-
-import { Dropzone, FileWithPath } from '@mantine/dropzone';
+import type { ReactNode } from 'react';
+import { Dropzone, type FileRejection, type FileWithPath } from '@mantine/dropzone';
 import { Group, Stack, Text, ThemeIcon, rem } from '@mantine/core';
 import { IconUpload, IconX, IconFileUpload } from '@tabler/icons-react';
 
@@ -8,17 +8,27 @@ interface FileDropzoneProps {
     accept?: string[];
     maxSizeMb?: number;
     onDrop: (files: FileWithPath[]) => void;
+    onReject?: (rejections: FileRejection[]) => void;
     label: string;
     hint?: string;
     height?: number;
-    icon?: React.ReactNode;
+    icon?: ReactNode;
 }
 
-export function FileDropzone({ accept, maxSizeMb = 500, onDrop, label, hint, height = 160, icon }: FileDropzoneProps) {
+export function FileDropzone({
+                                 accept,
+                                 maxSizeMb = 500,
+                                 onDrop,
+                                 onReject,
+                                 label,
+                                 hint,
+                                 height = 160,
+                                 icon,
+                             }: FileDropzoneProps) {
     return (
         <Dropzone
             onDrop={onDrop}
-            onReject={() => {}}
+            onReject={onReject}
             maxSize={maxSizeMb * 1024 * 1024}
             accept={accept}
             multiple={false}
@@ -43,7 +53,9 @@ export function FileDropzone({ accept, maxSizeMb = 500, onDrop, label, hint, hei
 
                 <Stack gap={2}>
                     <Text size="sm" fw={500}>{label}</Text>
-                    <Text size="xs" c="dimmed">{hint ?? `Glissez-déposez ou cliquez pour parcourir · max ${maxSizeMb} Mo`}</Text>
+                    <Text size="xs" c="dimmed">
+                        {hint ?? `Glissez-déposez ou cliquez pour parcourir · max ${maxSizeMb} Mo`}
+                    </Text>
                 </Stack>
             </Group>
         </Dropzone>

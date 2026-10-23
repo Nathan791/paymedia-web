@@ -6,7 +6,6 @@ import { ulid } from 'ulid'
 export class AuthService {
 
     async registerUser(data: any) {
-        // 🚀 Modification de la déstructuration : whatsappPhone au lieu de phoneNumber
         const { username, email, password, countryCode, whatsappPhone } = data
 
         // 1. Vérification doublon
@@ -19,7 +18,7 @@ export class AuthService {
         const saltRounds = 10
         const passwordHash = await bcrypt.hash(password, saltRounds)
 
-        // 3. Création de l'utilisateur (isVerified: true temporairement avant l'étape OTP)
+        // 3. Création de l'utilisateur et de son portefeuille associé (via nested write)
         const newUser = await prisma.user.create({
             data: {
                 ulid: ulid(),
@@ -28,20 +27,16 @@ export class AuthService {
                 passwordHash,
                 countryCode,
                 whatsappPhone,
-
-                isVerified: true
+                isVerified: true,
+                wallet: {
+                    create: {
+                        ulid: ulid(),
+                        balance: 0.00,
+                        currency: 'XAF'
+                    }
+                }
             },
             select: { id: true, ulid: true, username: true, email: true }
-        })
-
-        // 4. Création du Portefeuille associé
-        await prisma.userWallet.create({
-            data: {
-                ulid: ulid(),
-                userId: newUser.id,
-                balance: 0.00,
-                currency: 'XAF'
-            }
         })
 
         return newUser

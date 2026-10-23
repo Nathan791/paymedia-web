@@ -1,4 +1,4 @@
-import { catalogClient } from './client';
+import { catalogClient } from './client.js';
 import { Content, Category } from '@/models';
 
 export const contentApi = {

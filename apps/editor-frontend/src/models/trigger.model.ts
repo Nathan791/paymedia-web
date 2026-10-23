@@ -1,4 +1,4 @@
-import { Content } from './content.model';
+import { Content } from './content.model.js';
 
 export interface Trigger {
     id: string; // ULID

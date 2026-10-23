@@ -1,6 +1,6 @@
 // src/contexts/AuthContext.tsx
 import { createContext, useContext, ReactNode } from 'react';
-import { useAuthStore } from '@/stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store.js';
 import { User } from '@/models';
 
 interface AuthContextType {

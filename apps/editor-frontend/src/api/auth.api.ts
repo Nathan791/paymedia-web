@@ -1,9 +1,9 @@
 import axios from 'axios';
-
+import type { RegisterInput } from '@/models/user.model.js';
 import {
     authStorage,
     type AuthUser,
-} from '@/auth/auth.storage';
+} from '@/auth/auth.storage.js';
 
 const AUTH_URL =
     import.meta.env.VITE_AUTH_URL ||
@@ -47,7 +47,21 @@ export const authApi = {
         window.location.href =
             '/login';
     },
+    async register(input: RegisterInput): Promise<void> {
+        const res = await fetch('/api/v1/core/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(input),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            const error: any = new Error(json.message || json.error || "Erreur d'inscription");
+            error.response = { data: json, status: res.status };
+            throw error;
+        }
+    },
 };
+
 
 
 

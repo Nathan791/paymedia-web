@@ -1,5 +1,5 @@
 // src/api/analytics.api.ts
-import { catalogClient } from './client';  // ← Changé de apiClient à catalogClient
+import { catalogClient } from './client.js';  // ← Changé de apiClient à catalogClient
 import { DashboardStats, Analytics } from '@/models';
 
 export const analyticsApi = {

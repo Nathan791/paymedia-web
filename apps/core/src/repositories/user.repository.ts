@@ -1,5 +1,5 @@
 // apps/core/src/repositories/user.repository.ts
-import { PrismaClient, User, user_role } from '@prisma/client';
+import { PrismaClient, User, user_role } from '@paymedia/database';
 import { ulid } from 'ulid';
 
 export class UserRepository {

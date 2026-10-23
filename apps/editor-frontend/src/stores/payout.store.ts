@@ -1,6 +1,6 @@
 // src/stores/payout.store.ts
 import { create } from 'zustand';
-import { payoutApi } from '@/api/payout.api';
+import { payoutApi } from '@/api/payout.api.js';
 import { Payout, PayoutStats } from '@/models';
 
 // Définition du type de l'état

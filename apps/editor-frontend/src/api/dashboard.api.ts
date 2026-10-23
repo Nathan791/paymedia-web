@@ -1,4 +1,4 @@
-import mockClient from './mockClient';
+import mockClient from './mockClient.js';
 
 //  On utilise "mockClient" (mock) pour les données admin
 export const dashboardApi = {

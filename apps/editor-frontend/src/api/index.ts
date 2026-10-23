@@ -1,9 +1,9 @@
 // src/api/index.ts
-export * from './client';
-export * from './auth.api';
-export * from './user.api';
-export * from './content.api';
-export * from './transaction.api';
-export * from './payout.api';
-export * from './trigger.api';
-export * from './analytics.api';
+export * from './client.js';
+export * from './auth.api.js';
+export * from './user.api.js';
+export * from './content.api.js';
+export * from './transaction.api.js';
+export * from './payout.api.js';
+export * from './trigger.api.js';
+export * from './analytics.api.js';

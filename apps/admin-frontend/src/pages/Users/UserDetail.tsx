@@ -72,7 +72,7 @@ export default function UserDetail() {
         );
     }
 
-    //  Badge de rôle
+    // Badge de rôle
     const getRoleBadge = (role: string) => {
         const colors: Record<string, string> = {
             admin: 'red',
@@ -82,7 +82,7 @@ export default function UserDetail() {
         return <Badge size="lg" color={colors[role] || 'gray'}>{role}</Badge>;
     };
 
-    //  Badge de statut
+    // Badge de statut
     const getStatusBadge = (isActive: boolean) => {
         return (
             <Badge size="lg" color={isActive ? 'green' : 'red'} variant="light">
@@ -91,11 +91,10 @@ export default function UserDetail() {
         );
     };
 
-
     return (
         <Container fluid>
             <Box pos="relative">
-                {/*  En-tête avec bouton retour */}
+                {/* En-tête avec bouton retour */}
                 <Group justify="space-between" mb="lg">
                     <Group>
                         <Button
@@ -110,7 +109,7 @@ export default function UserDetail() {
                     {getRoleBadge(user.role)}
                 </Group>
 
-                {/*  Profil */}
+                {/* Profil */}
                 <Card withBorder p="xl" radius="md" mb="md">
                     <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
                         <Group>
@@ -159,7 +158,7 @@ export default function UserDetail() {
                     </Group>
                 </Card>
 
-                {/*  Statistiques adaptées au rôle */}
+                {/* Statistiques adaptées au rôle */}
                 <Title order={4} mb="md"> Statistiques</Title>
 
                 {user.role === 'reader' && user.stats && (
@@ -252,7 +251,7 @@ export default function UserDetail() {
                                 <div>
                                     <Text size="xs" c="dimmed">Dernière action</Text>
                                     <Text fw={700}>
-                                        {user.stats.recentActions?.length > 0
+                                        {user.stats.recentActions && user.stats.recentActions.length > 0
                                             ? new Date(user.stats.recentActions[0].date).toLocaleDateString()
                                             : 'N/A'}
                                     </Text>
@@ -262,13 +261,13 @@ export default function UserDetail() {
                     </SimpleGrid>
                 )}
 
-                {/*  Activité récente (spécifique au rôle) */}
+                {/* Activité récente (spécifique au rôle) */}
                 {user.role === 'reader' && user.stats?.recentlyViewed && user.stats.recentlyViewed.length > 0 && (
                     <Card withBorder p="lg" radius="md">
                         <Title order={5} mb="md"> Derniers contenus consultés</Title>
                         <ScrollArea>
                             {user.stats.recentlyViewed.map((item, index) => (
-                                <Group key={index} justify="space-between" p="xs" style={{ borderBottom: index < user.stats.recentlyViewed!.length - 1 ? '1px solid #eee' : 'none' }}>
+                                <Group key={index} justify="space-between" p="xs" style={{ borderBottom: index < (user.stats?.recentlyViewed?.length ?? 1) - 1 ? '1px solid #eee' : 'none' }}>
                                     <Text>{item.title}</Text>
                                     <Text size="xs" c="dimmed">{new Date(item.viewedAt).toLocaleString()}</Text>
                                 </Group>
@@ -282,7 +281,7 @@ export default function UserDetail() {
                         <Title order={5} mb="md"> Top contenus</Title>
                         <ScrollArea>
                             {user.stats.topContents.map((content, index) => (
-                                <Group key={index} justify="space-between" p="xs" style={{ borderBottom: index < user.stats.topContents!.length - 1 ? '1px solid #eee' : 'none' }}>
+                                <Group key={index} justify="space-between" p="xs" style={{ borderBottom: index < (user.stats?.topContents?.length ?? 1) - 1 ? '1px solid #eee' : 'none' }}>
                                     <Text>{content.title}</Text>
                                     <Group>
                                         <Badge size="sm" color="blue">{content.sales} ventes</Badge>
@@ -299,7 +298,7 @@ export default function UserDetail() {
                         <Title order={5} mb="md"> Dernières actions</Title>
                         <ScrollArea>
                             {user.stats.recentActions.map((action, index) => (
-                                <Group key={index} justify="space-between" p="xs" style={{ borderBottom: index < user.stats.recentActions!.length - 1 ? '1px solid #eee' : 'none' }}>
+                                <Group key={index} justify="space-between" p="xs" style={{ borderBottom: index < (user.stats?.recentActions?.length ?? 1) - 1 ? '1px solid #eee' : 'none' }}>
                                     <Text>{action.action}</Text>
                                     <Text size="xs" c="dimmed">{action.target}</Text>
                                     <Text size="xs" c="dimmed">{new Date(action.date).toLocaleString()}</Text>

@@ -114,7 +114,7 @@ export function EditorDashboard() {
 
     const permissions =
         ROLE_PERMISSIONS[
-        user?.role ?? 'journalist'
+        user?.role ?? 'editor'
             ];
 
     const {
@@ -247,7 +247,7 @@ export function EditorDashboard() {
                             {
                                 TEAM_ROLE_LABELS[
                                 user?.role ??
-                                'journalist'
+                                'editor'
                                     ]
                             }
                         </Badge>

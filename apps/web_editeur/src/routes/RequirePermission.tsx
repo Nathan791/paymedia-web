@@ -19,7 +19,7 @@ import { ROLE_PERMISSIONS, RolePermissions } from '@/models';
 
 export function RequirePermission({ permission, children }: { permission: keyof RolePermissions; children: ReactNode }) {
     const user = useAuthStore((s) => s.user);
-    const permissions = ROLE_PERMISSIONS[user?.role ?? 'journalist'];
+    const permissions = ROLE_PERMISSIONS[user?.role ?? 'editor'];
 
     if (!permissions[permission]) {
         return (

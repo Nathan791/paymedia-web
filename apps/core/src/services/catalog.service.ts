@@ -2,78 +2,71 @@
 import { prisma, MediaType, PubStatus } from '@paymedia/database';
 import { PublicationSchema } from '@paymedia/schemas';
 import { ulid } from 'ulid';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 type PublicationInput = z.infer<typeof PublicationSchema>;
 
 export class CatalogService {
-
     /**
-     * 🚀 Création d'une nouvelle œuvre
-     * Mappe les champs du DTO (Zod) vers le modèle de données (Prisma)
+     * Création d'une nouvelle œuvre.
+     * Mappe les champs du DTO (Zod) vers le modèle Prisma.
      */
-    async createPublication(data: PublicationInput, authorId: string) {
-        // Validation sécurisée du type de média pour correspondre à l'enum de la DB
-        // Si le contentType est 'pdf', on le replie sur 'epub' ou on lève une erreur selon votre politique métier
-        let dbMediaType: MediaType;
-
-        if (data.contentType === 'pdf') {
-            // Ajustement si votre schéma Prisma n'a pas encore migré pour le support PDF
-            dbMediaType = MediaType.epub;
-        } else {
-            dbMediaType = data.contentType as MediaType;
+    async createPublication(data: PublicationInput, authorId: number | string) {
+        // userId est un Int en base : conversion et validation
+        const userId = Number(authorId);
+        if (!Number.isInteger(userId) || userId <= 0) {
+            throw new Error('Identifiant auteur invalide');
         }
+
+        // L'enum MediaType ne contient que epub, audio et video
+        const mediaType = data.contentType as MediaType;
 
         return prisma.contenu.create({
             data: {
-                ulid: ulid(),                          // ID public unique triable
+                ulid: ulid(),
                 title: data.title,
                 description: data.description ?? null,
-                mediaType: dbMediaType,                // Correction du nom de colonne (mediaType au lieu de contentType)
-                fileUrl: data.mediaUrl,                // Correction du nom de colonne (fileUrl au lieu de mediaUrl)
+                mediaType,
+                fileUrl: data.mediaUrl,
                 thumbnailUrl: data.thumbnailUrl ?? null,
                 isPremium: data.isPremium ?? false,
-                price: data.price,                     // Pris en compte par Prisma vers Decimal
-                status: PubStatus.pending_review,      // Utilisation de l'enum Prisma typé
-                userId: authorId                       // Clé étrangère correcte (userId correspond à editor_id en DB)
-            }
+                price: data.price,
+                status: PubStatus.pending_review,
+                userId,
+            },
         });
     }
 
     /**
-     * 📚 Récupération paginée du catalogue public (Uniquement les contenus publiés)
+     * Catalogue public paginé (contenus publiés uniquement).
      */
-    async getPublicCatalog(page: number = 1, limit: number = 20) {
-        const skip = (page - 1) * limit;
+    async getPublicCatalog(page = 1, limit = 20) {
+        const safePage = Math.max(1, page);
+        const safeLimit = Math.min(Math.max(1, limit), 100);
+        const skip = (safePage - 1) * safeLimit;
+
+        const where = { status: PubStatus.published, deletedAt: null };
 
         const [items, total] = await prisma.$transaction([
             prisma.contenu.findMany({
-                where: {
-                    status: PubStatus.published,
-                    deletedAt: null // Exclure les éléments en soft-delete
-                },
+                where,
                 skip,
-                take: limit,
+                take: safeLimit,
                 orderBy: { createdAt: 'desc' },
                 select: {
                     ulid: true,
                     title: true,
                     description: true,
-                    mediaType: true, // Aligné sur la colonne Prisma
+                    mediaType: true,
                     thumbnailUrl: true,
                     isPremium: true,
                     price: true,
-                    createdAt: true
-                }
+                    createdAt: true,
+                },
             }),
-            prisma.contenu.count({
-                where: {
-                    status: PubStatus.published,
-                    deletedAt: null
-                }
-            })
+            prisma.contenu.count({ where }),
         ]);
 
-        return { items, total, page, limit };
+        return { items, total, page: safePage, limit: safeLimit };
     }
 }

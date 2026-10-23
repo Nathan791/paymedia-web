@@ -1,5 +1,5 @@
 // src/api/user.api.ts
-import { authClient } from './client';
+import { authClient } from './client.js';
 import { User } from '@/models';
 
 export const userApi = {

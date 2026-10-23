@@ -1,4 +1,4 @@
-import type { ContentStatus, MediaType } from '@/models/content.model';
+import type { ContentStatus, MediaType } from '@/models/content.model.js';
 
 export const CONTENT_STATUS_LABELS: Record<
     ContentStatus,

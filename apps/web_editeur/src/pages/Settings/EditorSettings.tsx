@@ -13,7 +13,7 @@ import { ROLE_PERMISSIONS } from '@/models';
 
 export function EditorSettings() {
     const user = useAuthStore((s) => s.user);
-    const permissions = ROLE_PERMISSIONS[user?.role ?? 'journalist'];
+    const permissions = ROLE_PERMISSIONS[user?.role ?? 'editor'];
 
     const [mediaName, setMediaName] = useState(user?.organization ?? '');
     const [mediaDescription, setMediaDescription] = useState('');

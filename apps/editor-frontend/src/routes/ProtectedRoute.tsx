@@ -1,5 +1,5 @@
 import {Navigate, Outlet,} from 'react-router-dom';
-import { authStorage } from '@/auth/auth.storage';
+import { authStorage } from '@/auth/auth.storage.js';
 
 interface ProtectedRouteProps {
     allowedRoles?: string[];
