@@ -161,24 +161,32 @@ export interface ContentDraftInput {
 // ============================================================================
 
 export interface ApiContentCategory {
+    id?: number;
+    ulid?: string;
     name: string;
     slug: string;
 }
 
 export interface ApiContent {
+    id?: number;
     ulid: string;
     title: string;
-    description: string;
+    description?: string | null;
     mediaType: ContentMediaType;
     price: string | number;
-    freeStartPage?: number;
-    freeEndPage?: number;
-    freePreviewDuration?: number;
+    freeStartPage?: number | null;
+    freeEndPage?: number | null;
+    freePreviewDuration?: number | null;
     isPremium: boolean;
     status: string;
-    thumbnailUrl: string | null;
+    fileUrl?: string | null;
+    coverUrl?: string | null;
+    thumbnailUrl?: string | null;
+    categoryId?: number | null;
+    userId?: number | null;
     createdAt: string;
-    category: ApiContentCategory | null;
+    updatedAt?: string;
+    category?: ApiContentCategory | null;
 }
 
 // ============================================================================

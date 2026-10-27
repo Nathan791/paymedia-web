@@ -1,92 +1,64 @@
-// apps/core/src/repositories/content.repository.ts
 import { prisma, MediaType, PubStatus } from '@paymedia/database'
 import { generateId } from '@paymedia/utils'
+import type { ContentCreate, ContentUpdate, ContentFilter } from '@paymedia/schemas'
 
-export interface ContentFilters {
-    page: number
-    limit: number
-    categoryId?: number
-    mediaType?: MediaType
-}
-
-export interface ContentCreate {
-    categoryId?: number
-    title: string
-    description?: string
-    mediaType: MediaType
-    price?: number
-    isPremium?: boolean
-}
-
-export interface ContentUpdate {
-    categoryId?: number
-    title?: string
-    description?: string
-    mediaType?: MediaType
-    price?: number
-    isPremium?: boolean
-    status?: PubStatus
-}
-
-/**
- * Liste les contenus publiés et non supprimés.
- */
-export async function findAll(filters: ContentFilters) {
+export async function findAll(filters: ContentFilter) {
     const page = Math.max(1, filters.page || 1)
     const limit = Math.min(100, Math.max(1, filters.limit || 20))
-
     const where = {
         deletedAt: null,
         status: PubStatus.published,
-        ...(filters.categoryId !== undefined && {
-            categoryId: filters.categoryId,
-        }),
-        ...(filters.mediaType !== undefined && {
-            mediaType: filters.mediaType,
-        }),
+        ...(filters.categoryId !== undefined && { categoryId: filters.categoryId }),
+        ...(filters.mediaType !== undefined && { mediaType: filters.mediaType }),
     }
 
     const [items, total] = await Promise.all([
         prisma.contenu.findMany({
             where,
-            orderBy: {
-                createdAt: 'desc',
-            },
+            include: { category: true },
+            orderBy: { createdAt: 'desc' },
             skip: (page - 1) * limit,
             take: limit,
         }),
-
         prisma.contenu.count({ where }),
     ])
 
-    return {
-        items,
-        total,
-        page,
-        limit,
-    }
+    return { items, total, page, limit }
 }
 
-/**
- * Recherche un contenu par ULID sans inclure les contenus supprimés.
- */
+/** Liste les contenus du compte connecté, y compris ses brouillons. */
+export async function findMine(userId: number, filters: ContentFilter) {
+    const page = Math.max(1, filters.page || 1)
+    const limit = Math.min(100, Math.max(1, filters.limit || 20))
+    const where = {
+        userId,
+        deletedAt: null,
+        ...(filters.categoryId !== undefined && { categoryId: filters.categoryId }),
+        ...(filters.mediaType !== undefined && { mediaType: filters.mediaType }),
+    }
+
+    const [items, total] = await Promise.all([
+        prisma.contenu.findMany({
+            where,
+            include: { category: true },
+            orderBy: { createdAt: 'desc' },
+            skip: (page - 1) * limit,
+            take: limit,
+        }),
+        prisma.contenu.count({ where }),
+    ])
+
+    return { items, total, page, limit }
+}
+
 export async function findByUlid(ulid: string) {
     return prisma.contenu.findFirst({
-        where: {
-            ulid,
-            deletedAt: null,
-        },
+        where: { ulid, deletedAt: null },
+        include: { category: true },
     })
 }
 
-/**
- * Crée un contenu.
- */
-export async function create(
-    userId: number,
-    data: ContentCreate,
-    fileUrl: string,
-) {
+export async function create(userId: number, data: ContentCreate, fileUrl: string, coverUrl?: string) {
     return prisma.contenu.create({
         data: {
             ulid: generateId(),
@@ -96,78 +68,68 @@ export async function create(
             description: data.description,
             mediaType: data.mediaType,
             fileUrl,
+            ...(coverUrl ? { coverUrl, thumbnailUrl: coverUrl } : {}),
             isPremium: data.isPremium ?? false,
             price: data.price ?? 0,
+            freeStartPage: data.freeStartPage,
+            freeEndPage: data.freeEndPage,
+            freePreviewDuration: data.freePreviewDuration,
             status: PubStatus.draft,
         },
+        include: { category: true },
     })
 }
 
-/**
- * Met à jour les champs fournis.
- */
-export async function update(
-    ulid: string,
-    data: ContentUpdate,
-) {
+export async function update(ulid: string, data: ContentUpdate, fileUrl?: string, coverUrl?: string) {
     const current = await findByUlid(ulid)
-
-    if (!current) {
-        throw new Error('NOT_FOUND')
-    }
+    if (!current) throw new Error('NOT_FOUND')
 
     return prisma.contenu.update({
-        where: {
-            ulid,
-        },
+        where: { ulid },
         data: {
-            ...(data.categoryId !== undefined && {
-                categoryId: data.categoryId,
-            }),
-
-            ...(data.title !== undefined && {
-                title: data.title,
-            }),
-
-            ...(data.description !== undefined && {
-                description: data.description,
-            }),
-
-            ...(data.mediaType !== undefined && {
-                mediaType: data.mediaType,
-            }),
-
-            ...(data.price !== undefined && {
-                price: data.price,
-            }),
-
-            ...(data.isPremium !== undefined && {
-                isPremium: data.isPremium,
-            }),
-
-            ...(data.status !== undefined && {
-                status: data.status,
-            }),
+            ...(data.categoryId !== undefined && { categoryId: data.categoryId }),
+            ...(data.title !== undefined && { title: data.title }),
+            ...(data.description !== undefined && { description: data.description }),
+            ...(data.mediaType !== undefined && { mediaType: data.mediaType }),
+            ...(data.price !== undefined && { price: data.price }),
+            ...(data.isPremium !== undefined && { isPremium: data.isPremium }),
+            ...(data.freeStartPage !== undefined && { freeStartPage: data.freeStartPage }),
+            ...(data.freeEndPage !== undefined && { freeEndPage: data.freeEndPage }),
+            ...(data.freePreviewDuration !== undefined && { freePreviewDuration: data.freePreviewDuration }),
+            ...(fileUrl !== undefined && { fileUrl }),
+            ...(coverUrl !== undefined && { coverUrl, thumbnailUrl: coverUrl }),
         },
+        include: { category: true },
     })
 }
 
-/**
- * Suppression logique : le contenu reste en base de données.
- */
 export async function softDelete(ulid: string) {
     const content = await findByUlid(ulid)
-
-    if (!content) {
-        throw new Error('NOT_FOUND')
-    }
+    if (!content) throw new Error('NOT_FOUND')
 
     return prisma.contenu.update({
+        where: { ulid },
+        data: { deletedAt: new Date() },
+    })
+}
+
+/** Retrouve le contenu propriétaire d'un fichier uploadé, sans exposer les chemins arbitraires. */
+export async function findByMediaFilename(filename: string) {
+    return prisma.contenu.findFirst({
         where: {
-            ulid,
+            deletedAt: null,
+            OR: [
+                { fileUrl: { endsWith: filename } },
+                { coverUrl: { endsWith: filename } },
+                { thumbnailUrl: { endsWith: filename } },
+            ],
         },
-        data: {
-            deletedAt: new Date(),
+        select: {
+            fileUrl: true,
+            coverUrl: true,
+            thumbnailUrl: true,
+            userId: true,
+            status: true,
         },
     })
 }

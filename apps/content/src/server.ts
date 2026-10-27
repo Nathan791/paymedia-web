@@ -14,23 +14,21 @@ const PUBLIC_ROUTES = new Set([
     'GET:/category',
     'GET:/category/:id',
     'GET:/content',
-    'GET:/content/:id',
 ])
 
 async function bootstrap(): Promise<void> {
     const app = Fastify({ logger: false })
 
     await app.register(multipart, {
-        limits: { fileSize: 500 * 1024 * 1024, files: 1, fields: 20 },
+        limits: { fileSize: 500 * 1024 * 1024, files: 2, fields: 20 },
         attachFieldsToBody: false,
     })
 
     const authMiddleware = buildAuthMiddleware({ jwtSecret: config.jwtSecret })
 
     app.addHook('preHandler', async (request, reply) => {
-        const method = request.method
-        const route  = request.routeOptions.url ?? request.url
-        const key    = `${method}:${route}`
+        const route = request.routeOptions.url ?? request.url
+        const key = `${request.method}:${route}`
         if (PUBLIC_ROUTES.has(key)) return
         return authMiddleware(request, reply)
     })
@@ -55,7 +53,6 @@ async function bootstrap(): Promise<void> {
     })
 
     await registerRoutes(app)
-
     await app.listen({ port: config.port, host: '127.0.0.1' })
     logger.info(`Catalog service listening on port ${config.port}`)
 }

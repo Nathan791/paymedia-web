@@ -39,7 +39,7 @@ export function EditorContentDetail() {
     const permissions = ROLE_PERMISSIONS[user?.role ?? 'editor'];
 
     const {
-        currentContent, fetchContents, isLoading, error, clearError,
+        currentContent, fetchContent, isLoading, error, clearError,
     } = useContentStore();
 
     const { accessPoints, fetchAccessPoints } = useAccessStore();
@@ -51,11 +51,11 @@ export function EditorContentDetail() {
 
     useEffect(() => {
         if (id) {
-            fetchContents();
+            fetchContent(id);
             fetchAccessPoints(id);
         }
         return () => clearError();
-    }, [id, fetchContents, fetchAccessPoints, clearError]);
+    }, [id, fetchContent, fetchAccessPoints, clearError]);
 
     const run = async (action: () => Promise<void>, successTitle: string) => {
         try {
@@ -69,8 +69,8 @@ export function EditorContentDetail() {
     const handleRequestCorrection = async () => {
         if (!currentContent || !correctionComment.trim()) return;
         try {
-            // Simulation ou appel store si disponible
-            notifications.show({ title: 'Correction demandée', message: "L'auteur a été notifié.", color: 'red' });
+            // Le backend ne propose pas encore de route pour cette action.
+            notifications.show({ title: 'Fonction non disponible', message: "L'API ne propose pas encore de route pour demander une correction.", color: 'orange' });
             setCorrectionModalOpen(false);
             setCorrectionComment('');
         } catch (e: any) {
@@ -82,7 +82,7 @@ export function EditorContentDetail() {
         if (!currentContent || !scheduleDate) return;
         try {
             // Simulation ou appel store si disponible
-            notifications.show({ title: 'Publication programmée', message: 'Le contenu sera publié automatiquement à la date choisie.', color: 'forest' });
+            notifications.show({ title: 'Fonction non disponible', message: 'Le backend ne propose pas encore la programmation de publication.', color: 'orange' });
             setScheduleModalOpen(false);
             setScheduleDate('');
         } catch (e: any) {
@@ -136,19 +136,19 @@ export function EditorContentDetail() {
                 </Button>
                 <Group>
                     {canSubmit && (
-                        <Button leftSection={<IconSend size={16} />} onClick={() => run(async () => {}, 'Envoyé en révision')}>
+                        <Button leftSection={<IconSend size={16} />} onClick={() => run(async () => { throw new Error('Le backend ne propose pas encore la soumission en révision.'); }, 'Envoyé en révision')}>
                             Soumettre à la révision
                         </Button>
                     )}
                     {canResubmit && (
-                        <Button leftSection={<IconSend size={16} />} onClick={() => run(async () => {}, 'Resoumis à la révision')}>
+                        <Button leftSection={<IconSend size={16} />} onClick={() => run(async () => { throw new Error('Le backend ne propose pas encore la resoumission en révision.'); }, 'Resoumis à la révision')}>
                             Resoumettre
                         </Button>
                     )}
                     {canReview && (
                         <>
                             <Button color="forest" leftSection={<IconCheck size={16} />}
-                                    onClick={() => run(async () => {}, 'Approuvé')}>
+                                    onClick={() => run(async () => { throw new Error('Le backend ne propose pas encore l’approbation.'); }, 'Approuvé')}>
                                 Approuver
                             </Button>
                             <Button color="red" variant="light" leftSection={<IconX size={16} />}
@@ -164,7 +164,7 @@ export function EditorContentDetail() {
                                 Programmer
                             </Button>
                             <Button color="forest" leftSection={<IconSend size={16} />}
-                                    onClick={() => run(async () => {}, 'Publié')}>
+                                    onClick={() => run(async () => { throw new Error('Le backend ne propose pas encore la publication.'); }, 'Publié')}>
                                 Publier maintenant
                             </Button>
                         </>
@@ -173,12 +173,12 @@ export function EditorContentDetail() {
                         Modifier
                     </Button>
                     {canArchive && (
-                        <Button variant="subtle" color="dark" leftSection={<IconArchive size={16} />} onClick={() => run(async () => {}, 'Archivé')}>
+                        <Button variant="subtle" color="dark" leftSection={<IconArchive size={16} />} onClick={() => run(async () => { throw new Error('Le backend ne propose pas encore l’archivage.'); }, 'Archivé')}>
                             Archiver
                         </Button>
                     )}
                     {canRestore && (
-                        <Button variant="subtle" leftSection={<IconRestore size={16} />} onClick={() => run(async () => {}, 'Restauré en brouillon')}>
+                        <Button variant="subtle" leftSection={<IconRestore size={16} />} onClick={() => run(async () => { throw new Error('Le backend ne propose pas encore la restauration.'); }, 'Restauré en brouillon')}>
                             Restaurer
                         </Button>
                     )}

@@ -36,10 +36,10 @@
 //
 // ============================================================================
 
-// VITE_API_URL doit désigner la racine versionnée de l'API, par ex. /api/v1.
+// VITE_API_URL désigne le préfixe du gateway, par ex. /api.
 const API_BASE_URL = (
     import.meta.env.VITE_API_URL ||
-    '/api/v1'
+    '/api'
 ).replace(/\/+$/, '');
 
 
@@ -383,6 +383,26 @@ export const apiClient = {
                     body !== undefined
                         ? JSON.stringify(body)
                         : undefined,
+            }
+        );
+    },
+
+
+    // =========================================================================
+    // PATCH JSON
+    // =========================================================================
+
+    patch<T>(
+        path: string,
+        body?: unknown,
+        options?: RequestOptions
+    ): Promise<T> {
+        return request<T>(
+            path,
+            {
+                ...options,
+                method: 'PATCH',
+                body: body !== undefined ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined,
             }
         );
     },
