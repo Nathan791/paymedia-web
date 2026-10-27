@@ -36,7 +36,7 @@
 //
 // ============================================================================
 
-// VITE_API_URL doit désigner la racine versionnée de l'API, par ex. /api/v1.
+// VITE_API_URL désigne le préfixe du gateway, par ex. /api.
 const API_BASE_URL = (
     import.meta.env.VITE_API_URL ||
     '/api'
