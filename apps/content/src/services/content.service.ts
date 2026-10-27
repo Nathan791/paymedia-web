@@ -9,9 +9,10 @@ export async function listMyContents(userId: number, filters: ContentFilter) {
     return contentRepository.findMine(userId, filters)
 }
 
-export async function getContent(ulid: string) {
+export async function getContent(ulid: string, userId: number) {
     const content = await contentRepository.findByUlid(ulid)
     if (!content) throw new Error('NOT_FOUND')
+    if (content.status !== 'published' && content.userId !== userId) throw new Error('FORBIDDEN')
     return content
 }
 
