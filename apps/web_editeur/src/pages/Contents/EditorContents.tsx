@@ -78,7 +78,7 @@ export function EditorContents() {
 
     const {
         contents, isLoading, error,
-        fetchContents, clearError,
+        fetchContents, deleteContent, clearError,
     } = useContentStore();
 
     const [filter, setFilter] = useState('all');
@@ -113,10 +113,9 @@ export function EditorContents() {
         if (!deleteTarget) return;
         setBusyId(deleteTarget.id);
         try {
-            // Simulation ou appel de suppression réel
-            notifications.show({ title: 'Supprimé', message: `« ${deleteTarget.title} » a été supprimé`, color: 'gray' });
+            await deleteContent(deleteTarget.id);
+            notifications.show({ title: 'Contenu supprimé', message: `« ${deleteTarget.title} » a été supprimé.`, color: 'gray' });
             setDeleteTarget(null);
-            fetchContents();
         } catch (e: any) {
             notifications.show({ title: 'Suppression impossible', message: e.message, color: 'red' });
         } finally {
