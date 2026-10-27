@@ -39,7 +39,7 @@
 // VITE_API_URL doit désigner la racine versionnée de l'API, par ex. /api/v1.
 const API_BASE_URL = (
     import.meta.env.VITE_API_URL ||
-    '/api/v1'
+    '/api'
 ).replace(/\/+$/, '');
 
 
