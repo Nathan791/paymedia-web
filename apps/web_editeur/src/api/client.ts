@@ -36,9 +36,11 @@
 //
 // ============================================================================
 
-const API_BASE_URL =
+// VITE_API_URL doit désigner la racine versionnée de l'API, par ex. /api/v1.
+const API_BASE_URL = (
     import.meta.env.VITE_API_URL ||
-    '/api/v1/core';
+    '/api/v1'
+).replace(/\/+$/, '');
 
 
 // ============================================================================
@@ -188,7 +190,7 @@ async function request<T>(
 
     const response =
         await fetch(
-            `${API_BASE_URL}${path}`,
+            `${API_BASE_URL}/${path.replace(/^\/+/, '')}`,
             {
                 ...fetchOptions,
                 body,
