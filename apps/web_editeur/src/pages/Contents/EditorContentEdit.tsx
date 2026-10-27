@@ -26,7 +26,7 @@ export function EditorContentEdit() {
     const permissions = ROLE_PERMISSIONS[user?.role ?? 'editor'];
 
     const {
-        currentContent, fetchContents, fetchCategories, categories,
+        currentContent, fetchContent, updateContent, fetchCategories, categories,
         isLoading, isSaving, error, clearError,
     } = useContentStore();
 
@@ -46,10 +46,10 @@ export function EditorContentEdit() {
     const [hydrated, setHydrated] = useState(false);
 
     useEffect(() => {
-        fetchContents();
+        if (id) fetchContent(id);
         fetchCategories();
         return () => clearError();
-    }, [fetchContents, fetchCategories, clearError]);
+    }, [id, fetchContent, fetchCategories, clearError]);
 
     useEffect(() => {
         if (currentContent && !hydrated) {
@@ -94,11 +94,19 @@ export function EditorContentEdit() {
         if (!id || !validate()) return;
 
         try {
+            await updateContent(id, {
+                title: title.trim(),
+                description: description.trim() || summary.trim(),
+                mediaType: currentContent?.mediaType ?? 'epub',
+                categoryId: categoryId ?? '',
+                tags,
+                isPremium,
+                price: isPremium ? Number(price) : 0,
+                freePreviewUnits: freePreviewUnits === '' ? 0 : Number(freePreviewUnits),
+            }, file, cover);
             notifications.show({
                 title: 'Contenu mis à jour',
-                message: isEditingPublished
-                    ? 'Une nouvelle version a été soumise à la révision — le contenu publié reste visible tel quel en attendant.'
-                    : 'Vos modifications ont été enregistrées.',
+                message: 'Les modifications ont été enregistrées dans l’API.',
                 color: 'forest', icon: <IconCircleCheck size={18} />,
             });
             navigate(`/editor/contents/${id}`);
