@@ -108,9 +108,52 @@ export async function updateContent(request: FastifyRequest, reply: FastifyReply
         return
     }
 
-    const input = ContentUpdateSchema.parse(request.body)
+    let rawInput: Record<string, unknown>
+    let fileUrl: string | undefined
+    let coverUrl: string | undefined
+
+    if ((request as any).isMultipart()) {
+        const fields: Record<string, string> = {}
+        for await (const part of (request as any).parts()) {
+            if (part.type === 'file') {
+                if (part.fieldname === 'cover_image') {
+                    if (!validateCoverMimeType(part.mimetype)) {
+                        reply.status(400).send({ code: 'INVALID_COVER_TYPE', message: 'Cover must be a JPEG, PNG or WebP image', timestamp: ts() })
+                        return
+                    }
+                    coverUrl = await saveFile(part, config.uploadsDir)
+                    continue
+                }
+                if (part.fieldname !== 'files') {
+                    reply.status(400).send({ code: 'UNEXPECTED_FILE_FIELD', message: 'Use files or cover_image for uploads', timestamp: ts() })
+                    return
+                }
+                const mediaType = fields.mediaType ?? ''
+                if (!validateMimeType(mediaType, part.mimetype)) {
+                    reply.status(400).send({ code: 'INVALID_FILE_TYPE', message: `File type not allowed for mediaType ${mediaType}`, timestamp: ts() })
+                    return
+                }
+                fileUrl = await saveFile(part, config.uploadsDir)
+            } else {
+                fields[part.fieldname] = String(part.value ?? '')
+            }
+        }
+        rawInput = {
+            ...fields,
+            ...(fields.categoryId ? { categoryId: Number(fields.categoryId) } : {}),
+            ...(fields.price !== undefined ? { price: Number(fields.price) } : {}),
+            ...(fields.isPremium !== undefined ? { isPremium: fields.isPremium === 'true' } : {}),
+            ...(fields.freeStartPage ? { freeStartPage: Number(fields.freeStartPage) } : {}),
+            ...(fields.freeEndPage ? { freeEndPage: Number(fields.freeEndPage) } : {}),
+            ...(fields.freePreviewDuration ? { freePreviewDuration: Number(fields.freePreviewDuration) } : {}),
+        }
+    } else {
+        rawInput = (request.body ?? {}) as Record<string, unknown>
+    }
+
+    const input = ContentUpdateSchema.parse(rawInput)
     try {
-        const content = await contentService.updateContent(id, userId, input)
+        const content = await contentService.updateContent(id, userId, input, fileUrl, coverUrl)
         reply.send({ data: content, timestamp: ts() })
     } catch (err: any) {
         if (err.message === 'NOT_FOUND') {
