@@ -14,7 +14,6 @@ const PUBLIC_ROUTES = new Set([
     'GET:/category',
     'GET:/category/:id',
     'GET:/content',
-    'GET:/content/:id',
 ])
 
 async function bootstrap(): Promise<void> {
