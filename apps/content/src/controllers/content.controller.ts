@@ -1,4 +1,6 @@
 import type { FastifyRequest, FastifyReply } from 'fastify'
+import { createReadStream } from 'node:fs'
+import { basename, extname, isAbsolute } from 'node:path'
 import { ContentCreateSchema, ContentUpdateSchema, ContentFilterSchema } from '@paymedia/schemas'
 import * as contentService from '../services/content.service'
 import { saveFile, validateMimeType, validateCoverMimeType } from '../uploads/file.handler'
@@ -199,4 +201,51 @@ export async function deleteContent(request: FastifyRequest, reply: FastifyReply
         }
         throw err
     }
+}
+
+export async function getMedia(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+    const { filename: rawFilename } = request.params as { filename: string }
+    const filename = basename(rawFilename)
+    if (!filename || filename !== rawFilename || filename.includes('..')) {
+        reply.status(400).send({ code: 'INVALID_FILENAME', message: 'Invalid media filename', timestamp: ts() })
+        return
+    }
+
+    const media = await contentService.getMediaByFilename(filename)
+    if (!media) {
+        reply.status(404).send({ code: 'NOT_FOUND', message: 'Media not found', timestamp: ts() })
+        return
+    }
+
+    const userId = currentUserId(request)
+    if (media.status !== 'published' && (!userId || media.userId !== userId)) {
+        reply.status(403).send({ code: 'FORBIDDEN', message: 'Not authorized to access this media', timestamp: ts() })
+        return
+    }
+
+    const storedPath = [media.fileUrl, media.coverUrl, media.thumbnailUrl]
+        .find((value) => value && basename(value) === filename)
+    if (!storedPath || !isAbsolute(storedPath)) {
+        reply.status(404).send({ code: 'NOT_FOUND', message: 'Media file path is unavailable', timestamp: ts() })
+        return
+    }
+
+    const mimeTypes: Record<string, string> = {
+        '.epub': 'application/epub+zip',
+        '.mp3': 'audio/mpeg',
+        '.mpeg': 'audio/mpeg',
+        '.mp4': 'video/mp4',
+        '.m4a': 'audio/mp4',
+        '.ogg': 'application/ogg',
+        '.webm': 'video/webm',
+        '.wav': 'audio/wav',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.webp': 'image/webp',
+        '.mov': 'video/quicktime',
+    }
+    reply.type(mimeTypes[extname(filename).toLowerCase()] ?? 'application/octet-stream')
+    reply.header('Content-Disposition', 'inline')
+    reply.send(createReadStream(storedPath))
 }
