@@ -19,11 +19,11 @@ export async function createContent(userId: number, data: ContentCreate, fileUrl
     return contentRepository.create(userId, data, fileUrl, coverUrl)
 }
 
-export async function updateContent(ulid: string, userId: number, data: ContentUpdate) {
+export async function updateContent(ulid: string, userId: number, data: ContentUpdate, fileUrl?: string, coverUrl?: string) {
     const content = await contentRepository.findByUlid(ulid)
     if (!content) throw new Error('NOT_FOUND')
     if (content.userId !== userId) throw new Error('FORBIDDEN')
-    return contentRepository.update(ulid, data)
+    return contentRepository.update(ulid, data, fileUrl, coverUrl)
 }
 
 export async function deleteContent(ulid: string, userId: number) {
