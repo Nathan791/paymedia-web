@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify'
 import * as contentController from '../controllers/content.controller'
 
 export async function contentRoutes(app: FastifyInstance): Promise<void> {
+    app.get   ('/media/:filename',  contentController.getMedia)
     // Route statique avant /content/:id pour lever toute ambiguïté.
     app.get   ('/content/my-contents', contentController.listMyContents)
     app.get   ('/content',             contentController.listContents)
