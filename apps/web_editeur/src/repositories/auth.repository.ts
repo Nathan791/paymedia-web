@@ -144,7 +144,7 @@ export const authRepository = {
 
         const response =
             await apiClient.post<LoginResponse>(
-                '/auth/login',
+                '/core/auth/login',
                 {
                     email: credentials.email
                         .trim()
@@ -202,7 +202,7 @@ export const authRepository = {
 
         const response =
             await apiClient.post<RegisterResponse>(
-                '/auth/register',
+                '/core/auth/register',
                 payload
             );
 
@@ -263,7 +263,7 @@ export const authRepository = {
 
         const response =
             await apiClient.post<GoogleAuthResponse>(
-                '/auth/google',
+                '/core/auth/google',
                 {
                     email:
                         email
@@ -304,7 +304,7 @@ export const authRepository = {
 
         const response =
             await apiClient.post<ForgotPasswordResponse>(
-                '/auth/forgot-password',
+                '/core/auth/forgot-password',
                 {
                     email:
                         input.email
@@ -337,7 +337,7 @@ export const authRepository = {
 
         const response =
             await apiClient.post<ForgotPasswordResponse>(
-                '/auth/reset-password',
+                '/core/auth/reset-password',
                 {
                     token:
                     input.token,
