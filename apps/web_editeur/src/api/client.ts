@@ -389,6 +389,26 @@ export const apiClient = {
 
 
     // =========================================================================
+    // PATCH JSON
+    // =========================================================================
+
+    patch<T>(
+        path: string,
+        body?: unknown,
+        options?: RequestOptions
+    ): Promise<T> {
+        return request<T>(
+            path,
+            {
+                ...options,
+                method: 'PATCH',
+                body: body !== undefined ? JSON.stringify(body) : undefined,
+            }
+        );
+    },
+
+
+    // =========================================================================
     // DELETE
     // =========================================================================
 
