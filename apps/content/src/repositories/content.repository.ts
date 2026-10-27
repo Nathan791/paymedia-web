@@ -112,3 +112,24 @@ export async function softDelete(ulid: string) {
         data: { deletedAt: new Date() },
     })
 }
+
+/** Retrouve le contenu propriétaire d'un fichier uploadé, sans exposer les chemins arbitraires. */
+export async function findByMediaFilename(filename: string) {
+    return prisma.contenu.findFirst({
+        where: {
+            deletedAt: null,
+            OR: [
+                { fileUrl: { endsWith: filename } },
+                { coverUrl: { endsWith: filename } },
+                { thumbnailUrl: { endsWith: filename } },
+            ],
+        },
+        select: {
+            fileUrl: true,
+            coverUrl: true,
+            thumbnailUrl: true,
+            userId: true,
+            status: true,
+        },
+    })
+}
