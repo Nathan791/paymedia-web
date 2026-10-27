@@ -33,3 +33,7 @@ export async function deleteContent(ulid: string, userId: number) {
     if (content.userId !== userId) throw new Error('FORBIDDEN')
     return contentRepository.softDelete(ulid)
 }
+
+export async function getMediaByFilename(filename: string) {
+    return contentRepository.findByMediaFilename(filename)
+}
