@@ -80,7 +80,7 @@ export async function create(userId: number, data: ContentCreate, fileUrl: strin
     })
 }
 
-export async function update(ulid: string, data: ContentUpdate) {
+export async function update(ulid: string, data: ContentUpdate, fileUrl?: string, coverUrl?: string) {
     const current = await findByUlid(ulid)
     if (!current) throw new Error('NOT_FOUND')
 
@@ -96,6 +96,8 @@ export async function update(ulid: string, data: ContentUpdate) {
             ...(data.freeStartPage !== undefined && { freeStartPage: data.freeStartPage }),
             ...(data.freeEndPage !== undefined && { freeEndPage: data.freeEndPage }),
             ...(data.freePreviewDuration !== undefined && { freePreviewDuration: data.freePreviewDuration }),
+            ...(fileUrl !== undefined && { fileUrl }),
+            ...(coverUrl !== undefined && { coverUrl, thumbnailUrl: coverUrl }),
         },
         include: { category: true },
     })
