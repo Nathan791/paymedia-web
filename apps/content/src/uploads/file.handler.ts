@@ -1,7 +1,6 @@
 import { createWriteStream, mkdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { resolve, extname } from 'node:path'
 import { pipeline } from 'node:stream/promises'
-import { extname } from 'node:path'
 import { generateId } from '@paymedia/utils'
 import type { MultipartFile } from '@fastify/multipart'
 
@@ -24,7 +23,7 @@ export async function saveFile(file: MultipartFile, uploadsDir: string): Promise
     mkdirSync(uploadsDir, { recursive: true })
     const extension = extname(file.filename).toLowerCase().replace(/[^.a-z0-9]/g, '') || '.bin'
     const filename = `${generateId()}${extension}`
-    const dest = join(uploadsDir, filename)
+    const dest = resolve(uploadsDir, filename)
     await pipeline(file.file, createWriteStream(dest, { flags: 'wx' }))
     return dest
 }
