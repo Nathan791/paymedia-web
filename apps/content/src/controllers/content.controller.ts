@@ -31,12 +31,21 @@ export async function listMyContents(request: FastifyRequest, reply: FastifyRepl
 
 export async function getContent(request: FastifyRequest, reply: FastifyReply): Promise<void> {
     const { id } = request.params as { id: string }
+    const userId = currentUserId(request)
+    if (!userId) {
+        reply.status(401).send({ code: 'UNAUTHENTICATED', message: 'Authentication required', timestamp: ts() })
+        return
+    }
     try {
-        const content = await contentService.getContent(id)
+        const content = await contentService.getContent(id, userId)
         reply.send({ data: content, timestamp: ts() })
     } catch (err: any) {
         if (err.message === 'NOT_FOUND') {
             reply.status(404).send({ code: 'NOT_FOUND', message: 'Content not found', timestamp: ts() })
+            return
+        }
+        if (err.message === 'FORBIDDEN') {
+            reply.status(403).send({ code: 'FORBIDDEN', message: 'Not authorized', timestamp: ts() })
             return
         }
         throw err
