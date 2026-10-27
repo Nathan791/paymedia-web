@@ -127,7 +127,7 @@ export function EditorContents() {
         if (!correctionTarget || !correctionComment.trim()) return;
         setBusyId(correctionTarget.id);
         try {
-            notifications.show({ title: 'Correction demandée', message: `« ${correctionTarget.title} » renvoyé à l'auteur`, color: 'red' });
+            notifications.show({ title: 'Fonction non disponible', message: 'Le backend ne propose pas encore la demande de correction.', color: 'orange' });
             setCorrectionTarget(null);
             setCorrectionComment('');
             fetchContents();
@@ -283,7 +283,7 @@ export function EditorContents() {
                                                     {canSubmit && (
                                                         <Menu.Item
                                                             leftSection={<IconSend size={14} />}
-                                                            onClick={() => run(content.id, content.title, async () => {}, 'Envoyé en révision')}
+                                                            onClick={() => run(content.id, content.title, async () => { throw new Error('Le backend ne propose pas encore la soumission en révision.'); }, 'Envoyé en révision')}
                                                         >
                                                             Soumettre à la révision
                                                         </Menu.Item>
@@ -291,7 +291,7 @@ export function EditorContents() {
                                                     {canResubmit && (
                                                         <Menu.Item
                                                             leftSection={<IconSend size={14} />}
-                                                            onClick={() => run(content.id, content.title, async () => {}, 'Resoumis à la révision')}
+                                                            onClick={() => run(content.id, content.title, async () => { throw new Error('Le backend ne propose pas encore la resoumission en révision.'); }, 'Resoumis à la révision')}
                                                         >
                                                             Resoumettre après correction
                                                         </Menu.Item>
@@ -302,7 +302,7 @@ export function EditorContents() {
                                                             <Menu.Label>Révision éditoriale</Menu.Label>
                                                             <Menu.Item
                                                                 leftSection={<IconCheck size={14} />} color="forest"
-                                                                onClick={() => run(content.id, content.title, async () => {}, 'Approuvé')}
+                                                                onClick={() => run(content.id, content.title, async () => { throw new Error('Le backend ne propose pas encore l’approbation.'); }, 'Approuvé')}
                                                             >
                                                                 Approuver
                                                             </Menu.Item>
@@ -317,7 +317,7 @@ export function EditorContents() {
                                                     {canPublishNow && (
                                                         <Menu.Item
                                                             leftSection={<IconSend size={14} />} color="forest"
-                                                            onClick={() => run(content.id, content.title, async () => {}, 'Publié')}
+                                                            onClick={() => run(content.id, content.title, async () => { throw new Error('Le backend ne propose pas encore la publication.'); }, 'Publié')}
                                                         >
                                                             Publier maintenant
                                                         </Menu.Item>
@@ -333,7 +333,7 @@ export function EditorContents() {
                                                     {canArchive && (
                                                         <Menu.Item
                                                             leftSection={<IconArchive size={14} />}
-                                                            onClick={() => run(content.id, content.title, async () => {}, 'Archivé')}
+                                                            onClick={() => run(content.id, content.title, async () => { throw new Error('Le backend ne propose pas encore l’archivage.'); }, 'Archivé')}
                                                         >
                                                             Archiver
                                                         </Menu.Item>
@@ -341,7 +341,7 @@ export function EditorContents() {
                                                     {canRestore && (
                                                         <Menu.Item
                                                             leftSection={<IconRestore size={14} />}
-                                                            onClick={() => run(content.id, content.title, async () => {}, 'Restauré en brouillon')}
+                                                            onClick={() => run(content.id, content.title, async () => { throw new Error('Le backend ne propose pas encore la restauration.'); }, 'Restauré en brouillon')}
                                                         >
                                                             Restaurer en brouillon
                                                         </Menu.Item>
