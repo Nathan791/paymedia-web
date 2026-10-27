@@ -13,6 +13,7 @@ const PUBLIC_ROUTES = new Set([
     'GET:/health',
     'GET:/category',
     'GET:/category/:id',
+    'GET:/media/:filename',
     'GET:/content',
 ])
 
