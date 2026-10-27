@@ -39,7 +39,7 @@ export function EditorContentDetail() {
     const permissions = ROLE_PERMISSIONS[user?.role ?? 'editor'];
 
     const {
-        currentContent, fetchContents, isLoading, error, clearError,
+        currentContent, fetchContent, isLoading, error, clearError,
     } = useContentStore();
 
     const { accessPoints, fetchAccessPoints } = useAccessStore();
@@ -51,11 +51,11 @@ export function EditorContentDetail() {
 
     useEffect(() => {
         if (id) {
-            fetchContents();
+            fetchContent(id);
             fetchAccessPoints(id);
         }
         return () => clearError();
-    }, [id, fetchContents, fetchAccessPoints, clearError]);
+    }, [id, fetchContent, fetchAccessPoints, clearError]);
 
     const run = async (action: () => Promise<void>, successTitle: string) => {
         try {
@@ -70,7 +70,7 @@ export function EditorContentDetail() {
         if (!currentContent || !correctionComment.trim()) return;
         try {
             // Simulation ou appel store si disponible
-            notifications.show({ title: 'Correction demandée', message: "L'auteur a été notifié.", color: 'red' });
+            notifications.show({ title: 'Fonction non disponible', message: "L'API ne propose pas encore de route pour demander une correction.", color: 'orange' });
             setCorrectionModalOpen(false);
             setCorrectionComment('');
         } catch (e: any) {
