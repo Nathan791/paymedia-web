@@ -69,7 +69,7 @@ export function EditorContentDetail() {
     const handleRequestCorrection = async () => {
         if (!currentContent || !correctionComment.trim()) return;
         try {
-            // Simulation ou appel store si disponible
+            // Le backend ne propose pas encore de route pour cette action.
             notifications.show({ title: 'Fonction non disponible', message: "L'API ne propose pas encore de route pour demander une correction.", color: 'orange' });
             setCorrectionModalOpen(false);
             setCorrectionComment('');
