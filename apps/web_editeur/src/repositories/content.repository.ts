@@ -52,6 +52,13 @@ function normalizePrice(price: string | number): number {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function mediaApiUrl(value?: string | null): string | null {
+    if (!value) return null;
+    if (/^https?:\/\//i.test(value)) return value;
+    const filename = value.split(/[\\/]/).pop();
+    return filename ? `/api/catalog/media/${encodeURIComponent(filename)}` : null;
+}
+
 function mapApiContent(item: ApiContent): Content {
     const category = item.category
         ? {
@@ -74,9 +81,9 @@ function mapApiContent(item: ApiContent): Content {
         description: item.description ?? '',
         mediaType: item.mediaType,
         asset: item.fileUrl
-            ? { fileName: item.fileUrl.split('/').pop() ?? 'fichier', fileUrl: item.fileUrl, fileSizeBytes: 0, mimeType: '' }
+            ? { fileName: item.fileUrl.split(/[\\/]/).pop() ?? 'fichier', fileUrl: mediaApiUrl(item.fileUrl) ?? '', fileSizeBytes: 0, mimeType: '' }
             : null,
-        coverUrl: item.coverUrl ?? item.thumbnailUrl ?? null,
+        coverUrl: mediaApiUrl(item.coverUrl ?? item.thumbnailUrl),
         category,
         tags: [],
         isPremium: item.isPremium,
