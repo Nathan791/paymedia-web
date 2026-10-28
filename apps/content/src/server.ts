@@ -30,6 +30,14 @@ async function bootstrap(): Promise<void> {
         const route = request.routeOptions.url ?? request.url
         const key = `${request.method}:${route}`
         if (PUBLIC_ROUTES.has(key)) return
+
+        // Published media can be embedded by browsers (img/audio/video) without
+        // an Authorization header. getMedia itself only serves published files
+        // anonymously; draft/private files still require a valid owner token.
+        if (request.method === 'GET' && route === '/media/:filename' && !request.headers.authorization) {
+            return
+        }
+
         return authMiddleware(request, reply)
     })
 
