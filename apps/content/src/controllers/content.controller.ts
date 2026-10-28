@@ -218,7 +218,11 @@ export async function getMedia(request: FastifyRequest, reply: FastifyReply): Pr
     }
 
     const userId = currentUserId(request)
-    if (media.status !== 'published' && (!userId || media.userId !== userId)) {
+    if (media.status !== 'published' && !userId) {
+        reply.status(401).send({ code: 'UNAUTHENTICATED', message: 'Authentication required to access this media', timestamp: ts() })
+        return
+    }
+    if (media.status !== 'published' && media.userId !== userId) {
         reply.status(403).send({ code: 'FORBIDDEN', message: 'Not authorized to access this media', timestamp: ts() })
         return
     }
